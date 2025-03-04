@@ -8,7 +8,6 @@ from app import app, db
 from models.user import User
 from utils import auth_required, admin_required
 
-
 SESSION_REDIS = redis.from_url(os.getenv('SESSION_REDIS'))
 
 bcrypt = Bcrypt(app)
@@ -69,7 +68,7 @@ def profile():
     user = request.user 
     if request.method == 'PUT':
         user.first_name = request.json['first_name']
-        user.first_name = request.json['last_name']
+        user.last_name = request.json['last_name']
         db.session.commit()
     return jsonify({
             "id": user.id,

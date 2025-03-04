@@ -28,7 +28,7 @@ SESSION_REDIS = <INSERT SESSION REDIS HERE (e.g., 'redis://localhost:6379/0')>
 
 ### Database
 - If this is your first time setting up migrations, you need to initialize the migration directory by running `flask db init`.
-- Every time you modify your SQLAlchemy models, generate a migration file by running `flask db migrate -m " <INSERT DESCRIPTION OF CHANGES HERE "`.
+- Every time you modify your SQLAlchemy models, generate a migration file by running `flask db migrate -m "<INSERT DESCRIPTION OF CHANGES HERE>"`.
 - To apply the migrations to the database, run `flask db upgrade`.
 - To undo the last migration, run `flask db downgrade`.
 
