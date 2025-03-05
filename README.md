@@ -31,4 +31,5 @@ SESSION_REDIS = <INSERT SESSION REDIS HERE (e.g., 'redis://localhost:6379/0')>
 - Every time you modify your SQLAlchemy models, generate a migration file by running `flask db migrate -m "<INSERT DESCRIPTION OF CHANGES HERE>"`.
 - To apply the migrations to the database, run `flask db upgrade`.
 - To undo the last migration, run `flask db downgrade`.
+- To start Redis locally, run `redis-server`.
 

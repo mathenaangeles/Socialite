@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from sqlalchemy import create_engine
 
 load_dotenv()
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -12,3 +13,7 @@ class Configuration(object):
     SESSION_TYPE = os.getenv('SESSION_TYPE')
     SESSION_PERMANENT = os.getenv('SESSION_PERMANENT')
     SESSION_USE_SIGNER = os.getenv('SESSION_USE_SIGNER')
+
+    
+
+    

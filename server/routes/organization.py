@@ -5,7 +5,7 @@ from models.user import User
 from models.organization import Organization
 from utils import auth_required, admin_required
 
-@app.route('/create_organization', methods=['POST'])
+@app.route('/organization/create', methods=['POST'])
 @auth_required
 def create_organization():
     name = request.json['name']
@@ -29,7 +29,6 @@ def create_organization():
         "members": [member.to_dict() for member in new_organization.members]
     }), 200
 
-
 @app.route('/organization/<id>', methods=['GET', 'PUT', 'DELETE'])
 @auth_required
 def organization(id):
@@ -39,11 +38,12 @@ def organization(id):
             "error": "Organization could not be found."
         }), 404
     if request.method == 'DELETE':
+        organization_id = organization.id
         for user in organization.members:
             user.organizations.remove(organization)
         db.session.delete(organization)
         db.session.commit()
-        return '', 204
+        return {"id": organization_id}, 204
     elif request.method == 'PUT':
         name = request.json['name']
         if name:
@@ -55,9 +55,7 @@ def organization(id):
         "members": [member.to_dict() for member in organization.members]
     }), 200
 
-
-
-@app.route('/members/organization/<id>', methods=['POST', 'DELETE'])
+@app.route('/organization/members/<id>', methods=['PUT', 'DELETE'])
 @auth_required
 def members(id):
     organization = Organization.query.filter_by(id=id).first()
@@ -80,7 +78,7 @@ def members(id):
             if user in organization.members:
                 organization.members.remove(user)
                 user.organizations.remove(organization)
-    elif request.method == 'POST':
+    elif request.method == 'PUT':
         for user in users:
             if user not in organization.members:
                 organization.members.append(user)
