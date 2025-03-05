@@ -1,5 +1,4 @@
 import os
-import redis
 from flask_bcrypt import Bcrypt
 from flask_session import Session
 from flask import request, jsonify, session
@@ -7,8 +6,6 @@ from flask import request, jsonify, session
 from app import app, db
 from models.user import User
 from utils import auth_required, admin_required
-
-SESSION_REDIS = redis.from_url(os.getenv('SESSION_REDIS'))
 
 bcrypt = Bcrypt(app)
 server_session = Session(app)
