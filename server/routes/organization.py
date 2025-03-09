@@ -1,5 +1,5 @@
 from app import app, db
-from flask import request, jsonify, session
+from flask import request, jsonify
 
 from models.user import User
 from models.organization import Organization
@@ -15,18 +15,17 @@ def create_organization():
             "error": "An organization with this name already exists."
         }), 409
     user = request.user
-    new_organization = Organization(
-        name=name,
-        members=[]
-    )
-    new_organization.members.append(user)
+    if user.organization_id:
+        return jsonify({"error": "The authenticated user is already a member of an organization."}), 400
+    new_organization = Organization(name=name)
     db.session.add(new_organization)
-    user.organizations.append(new_organization)
+    db.session.commit()
+    user.organization_id = new_organization.id
     db.session.commit()
     return jsonify({
         "id": new_organization.id,
         "name": new_organization.name,
-        "members": [member.to_dict() for member in new_organization.members]
+        "members": [{"id": u.id, "email": u.email} for u in User.query.filter_by(organization_id=organization.id).all()]
     }), 200
 
 @app.route('/organization/<id>', methods=['GET', 'PUT', 'DELETE'])
@@ -39,20 +38,20 @@ def organization(id):
         }), 404
     if request.method == 'DELETE':
         organization_id = organization.id
-        for user in organization.members:
-            user.organizations.remove(organization)
+        for user in User.query.filter_by(organization_id=organization.id).all():
+            user.organization_id = None
         db.session.delete(organization)
         db.session.commit()
-        return {"id": organization_id}, 204
+        return { "id" : organization_id }, 204
     elif request.method == 'PUT':
-        name = request.json['name']
+        name = request.json.get('name')
         if name:
             organization.name = name
         db.session.commit()
     return jsonify({
         "id": organization.id,
         "name": organization.name,
-        "members": [member.to_dict() for member in organization.members]
+        "members": [{"id": u.id, "email": u.email} for u in User.query.filter_by(organization_id=organization.id).all()]
     }), 200
 
 @app.route('/organization/members/<id>', methods=['PUT', 'DELETE'])
@@ -63,7 +62,7 @@ def members(id):
         return jsonify({
             "error": "Organization could not be found."
         }), 404
-    emails = request.json['emails']
+    emails = request.json.get('emails', [])
     if not emails:
         return jsonify({
             "error": "No emails were provided."
@@ -75,19 +74,18 @@ def members(id):
         }), 404 
     if request.method == 'DELETE':
         for user in users:
-            if user in organization.members:
-                organization.members.remove(user)
-                user.organizations.remove(organization)
+            if user.organization_id == organization.id:
+                user.organization_id = None
     elif request.method == 'PUT':
         for user in users:
-            if user not in organization.members:
-                organization.members.append(user)
-                user.organizations.append(organization)
+            if user.organization_id and user.organization_id != organization.id:
+                return jsonify({"error": f"{user.email} is already a member of another organization."}), 400
+            user.organization_id = organization.id
     db.session.commit()
     return jsonify({
         "id": organization.id,
         "name": organization.name,
-        "members": [member.to_dict() for member in organization.members]
+        "members": [{"id": u.id, "email": u.email} for u in User.query.filter_by(organization_id=organization.id).all()]
     }), 200
 
 @app.route('/organizations', methods=['GET'])
