@@ -33,9 +33,9 @@ DB_TIMEOUT=30
 7. In the `client` directory, run `npm start`.
 
 ### Database
+- Add your IP address to the Azure SQL server under under `Networking`.
 - If this is your first time setting up migrations, you need to initialize the migration directory by running `flask db init`.
 - Every time you modify your SQLAlchemy models, generate a migration file by running `flask db migrate -m "<INSERT DESCRIPTION OF CHANGES HERE>"`.
 - To apply the migrations to the database, run `flask db upgrade`.
 - To undo the last migration, run `flask db downgrade`.
-- To start Redis locally, run `redis-server`.
 

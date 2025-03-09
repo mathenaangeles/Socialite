@@ -9,8 +9,11 @@ import {
   CircularProgress,
   Snackbar,
   Alert,
+  Box,
+  Toolbar,
 } from '@mui/material';
 
+import Sidebar from "../../components/Sidebar";
 import { getProfile, updateProfile } from '../../slices/userSlice';
 
 const Profile = () => {
@@ -51,42 +54,49 @@ const Profile = () => {
   }
 
   return (
-    <Card sx={{ maxWidth: 500, margin: 'auto', mt: 5, p: 3 }}>
-      <CardContent>
-        <Typography variant="h4" gutterBottom>
-          Profile
-        </Typography>
-        <Typography variant="body1" color="text.secondary" gutterBottom>
-          {user?.email}
-        </Typography>
-        <form onSubmit={handleUpdate}>
-          <TextField
-            fullWidth
-            label="First Name"
-            variant="outlined"
-            margin="normal"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-          />
-          <TextField
-            fullWidth
-            label="Last Name"
-            variant="outlined"
-            margin="normal"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-          />
-          <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
-            Update Profile
-          </Button>
-        </form>
-      </CardContent>
-      <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={() => setSnackbarOpen(false)}>
-        <Alert severity="success" onClose={() => setSnackbarOpen(false)}>
-          Profile updated successfully!
-        </Alert>
-      </Snackbar>
-    </Card>
+    <Box sx={{ display: "flex" }}>
+      {/* Sidebar */}
+      <Sidebar />
+      <Box component="main" sx={{ flexGrow: 1 }}>
+        <Toolbar />
+        <Card sx={{ maxWidth: 500, margin: 'auto', mt: 5, p: 3  }}>
+          <CardContent>
+            <Typography variant="h4" gutterBottom>
+              Profile
+            </Typography>
+            <Typography variant="body1" color="text.secondary" gutterBottom>
+              {user?.email}
+            </Typography>
+            <form onSubmit={handleUpdate}>
+              <TextField
+                fullWidth
+                label="First Name"
+                variant="outlined"
+                margin="normal"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+              />
+              <TextField
+                fullWidth
+                label="Last Name"
+                variant="outlined"
+                margin="normal"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+              />
+              <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
+                Update Profile
+              </Button>
+            </form>
+          </CardContent>
+          <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={() => setSnackbarOpen(false)}>
+            <Alert severity="success" onClose={() => setSnackbarOpen(false)}>
+              Profile updated successfully!
+            </Alert>
+          </Snackbar>
+        </Card>
+      </Box>
+    </Box>
   );
 };
 

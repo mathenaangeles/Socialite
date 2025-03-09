@@ -41,8 +41,8 @@ export const deleteOrganization = createAsyncThunk(
   '/organization/delete',
   async (id, { rejectWithValue }) => {
     try {
-      await Axios.delete(`/organization/${id}`, { withCredentials: true });
-      return id;
+      const { data } = await Axios.delete(`/organization/${id}`, { withCredentials: true });
+      return data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);
     }
@@ -53,7 +53,7 @@ export const addMembers = createAsyncThunk(
     'organization/members/add',
     async ({ id, emails }, { rejectWithValue }) => {
       try {
-        const { data } = await Axios.get(`/organization/members/${id}`, { emails },  { withCredentials: true });
+        const { data } = await Axios.put(`/organization/members/${id}`, { emails },  { withCredentials: true });
         return data;
       } catch (err) {
         return rejectWithValue(err.response?.data?.message || err.message);
@@ -127,7 +127,7 @@ const organizationSlice = createSlice({
             state.loading = false;
             state.organization = action.payload;
             const index = state.organizations.findIndex(organization => organization.id === action.payload.id);
-            if (index !== -1 && index !== undefined) {
+            if (index !== -1) {
                 state.organizations[index] = action.payload;
             }
             state.error = null;
@@ -159,7 +159,7 @@ const organizationSlice = createSlice({
             state.loading = false;
             state.organization = action.payload;
             const index = state.organizations.findIndex(organization => organization.id === action.payload.id);
-            if (index !== -1 && index !== undefined) {
+            if (index !== -1) {
                 state.organizations[index] = action.payload;
             }
             state.error = null;
@@ -177,7 +177,7 @@ const organizationSlice = createSlice({
             state.loading = false;
             state.organization = action.payload;
             const index = state.organizations.findIndex(organization => organization.id === action.payload.id);
-            if (index !== -1 && index !== undefined) {
+            if (index !== -1) {
                 state.organizations[index] = action.payload;
             }
             state.error = null;

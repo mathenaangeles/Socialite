@@ -14,7 +14,7 @@ class User(db.Model, SerializerMixin):
     last_name = db.Column(db.String(250), nullable=True)
 
     organization_id = db.Column(UNIQUEIDENTIFIER, db.ForeignKey('organization.id'), nullable=True)
-    organization = db.relationship('Organization', back_populates='members')
+    organization = db.relationship('Organization', back_populates='members', lazy="joined")
 
     serialize_rules = ('-organization',)
 

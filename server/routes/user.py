@@ -1,4 +1,3 @@
-import os
 from flask_bcrypt import Bcrypt
 from flask_session import Session
 from flask import request, jsonify, session
@@ -32,7 +31,7 @@ def register():
         "email": new_user.email,
         "first_name": new_user.first_name,
         "last_name": new_user.last_name,
-        "organization": new_user.organization.to_dict() if new_user.organization else None,
+        "organization": new_user.organization.to_dict(),
     }), 201
 
 @app.route('/login', methods=['POST'])
@@ -55,7 +54,7 @@ def login():
         "email": user.email,
         "first_name": user.first_name,
         "last_name": user.last_name,
-        "organization": user.organization.to_dict() if user.organization else None,
+        "organization": user.organization.to_dict(),
     }), 200
 
 @app.route('/profile', methods=['GET', 'PUT'])
@@ -72,7 +71,7 @@ def profile():
             "email": user.email,
             "first_name": user.first_name,
             "last_name": user.last_name,
-            "organization": user.organization.to_dict() if user.organization else None
+            "organization": user.organization.to_dict()
         }), 200
 
 @app.route('/logout', methods=['POST'])
