@@ -71,10 +71,13 @@ export const logout = createAsyncThunk(
 
 const userSlice = createSlice({
   name: 'user',
-  initialState: { loading: false, user: null, error: null },
+  initialState:{ 
+    loading: false, 
+    user: null, 
+    error: null 
+  },
   extraReducers: (builder) => {
     builder
-    // REGISTER
     .addCase(register.pending, (state) => {
       state.loading = true;
       state.error = null;
@@ -89,7 +92,6 @@ const userSlice = createSlice({
       state.error = action.payload;
     })
 
-    // LOGIN
     .addCase(login.pending, (state) => {
       state.loading = true;
       state.error = null;
@@ -104,7 +106,6 @@ const userSlice = createSlice({
       state.error = action.payload;
     })
 
-    // UPDATE PROFILE
     .addCase(updateProfile.pending, (state) => {
       state.loading = true;
       state.error = null;
@@ -119,7 +120,6 @@ const userSlice = createSlice({
       state.error = action.payload;
     })
 
-    // GET PROFILE
     .addCase(getProfile.pending, (state) => {
       state.loading = true;
       state.error = null;
@@ -134,7 +134,6 @@ const userSlice = createSlice({
       state.error = action.payload;
     })
 
-    // LOGOUT
     .addCase(logout.pending, (state) => {
       state.loading = true;
       state.error = null;

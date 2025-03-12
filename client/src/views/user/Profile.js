@@ -1,6 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import {
+  Card,
+  CardContent,
+  Typography,
+  TextField,
+  Button,
+  CircularProgress,
+  Snackbar,
+  Alert,
+  Box,
+  Toolbar,
+} from '@mui/material';
 
+import Sidebar from "../../components/Sidebar";
 import { getProfile, updateProfile } from '../../slices/userSlice';
 
 const Profile = () => {
@@ -9,6 +22,7 @@ const Profile = () => {
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -19,55 +33,70 @@ const Profile = () => {
     }
   }, [dispatch, user]);
 
-  const handleUpdate = (e) => {
+  const handleUpdate = async (e) => {
     e.preventDefault();
     const updatedData = { first_name: firstName, last_name: lastName };
 
-    dispatch(updateProfile(updatedData))
-      .then(() => {
-        alert('Profile updated successfully');
-      })
-      .catch((err) => {
-        console.error('Failed to update profile:', err);
-      });
+    try {
+      await dispatch(updateProfile(updatedData)).unwrap();
+      setSnackbarOpen(true);
+    } catch (err) {
+      console.error('Failed to update profile:', err);
+    }
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <CircularProgress />;
   }
 
   if (error) {
-    return <div>{error}</div>;
+    return <Alert severity="error">{error}</Alert>;
   }
 
   return (
-    <div>
-      <h1>Profile</h1>
-      <div>{user.email}</div>
-      <div>{user.first_name}</div>
-      <div>{user.last_name}</div>
-      <form onSubmit={handleUpdate}>
-        <div>
-          <label htmlFor="first-name">First Name:</label>
-          <input
-            type="text"
-            id="first-name"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-          />
-        </div>
-        <div>
-          <label htmlFor="last-name">Last Name:</label>
-          <input
-            type="text"
-            id="last-name"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-          />
-        </div>
-        <button type="submit">Update Profile</button>
-      </form>
-    </div>
+    <Box sx={{ display: "flex" }}>
+      {/* Sidebar */}
+      <Sidebar />
+      <Box component="main" sx={{ flexGrow: 1 }}>
+        <Toolbar />
+        <Card sx={{ maxWidth: 500, margin: 'auto', mt: 5, p: 3  }}>
+          <CardContent>
+            <Typography variant="h4" gutterBottom>
+              Profile
+            </Typography>
+            <Typography variant="body1" color="text.secondary" gutterBottom>
+              {user?.email}
+            </Typography>
+            <form onSubmit={handleUpdate}>
+              <TextField
+                fullWidth
+                label="First Name"
+                variant="outlined"
+                margin="normal"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+              />
+              <TextField
+                fullWidth
+                label="Last Name"
+                variant="outlined"
+                margin="normal"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+              />
+              <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
+                Update Profile
+              </Button>
+            </form>
+          </CardContent>
+          <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={() => setSnackbarOpen(false)}>
+            <Alert severity="success" onClose={() => setSnackbarOpen(false)}>
+              Profile updated successfully!
+            </Alert>
+          </Snackbar>
+        </Card>
+      </Box>
+    </Box>
   );
 };
 

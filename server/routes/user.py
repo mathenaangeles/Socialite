@@ -1,5 +1,3 @@
-import os
-import redis
 from flask_bcrypt import Bcrypt
 from flask_session import Session
 from flask import request, jsonify, session
@@ -7,8 +5,6 @@ from flask import request, jsonify, session
 from app import app, db
 from models.user import User
 from utils import auth_required, admin_required
-
-SESSION_REDIS = redis.from_url(os.getenv('SESSION_REDIS'))
 
 bcrypt = Bcrypt(app)
 server_session = Session(app)
@@ -25,7 +21,6 @@ def register():
     new_user = User(
         email=email, 
         password=bcrypt.generate_password_hash(password),
-        organizations=[]
     )
     db.session.add(new_user)
     db.session.commit()
@@ -36,7 +31,7 @@ def register():
         "email": new_user.email,
         "first_name": new_user.first_name,
         "last_name": new_user.last_name,
-        "organizations": [organization.to_dict() for organization in new_user.organizations],
+        "organization": new_user.organization.to_dict(),
     }), 201
 
 @app.route('/login', methods=['POST'])
@@ -59,7 +54,7 @@ def login():
         "email": user.email,
         "first_name": user.first_name,
         "last_name": user.last_name,
-        "organizations": [organization.to_dict() for organization in user.organizations],
+        "organization": user.organization.to_dict(),
     }), 200
 
 @app.route('/profile', methods=['GET', 'PUT'])
@@ -67,8 +62,8 @@ def login():
 def profile():
     user = request.user 
     if request.method == 'PUT':
-        user.first_name = request.json['first_name']
-        user.last_name = request.json['last_name']
+        user.first_name = request.json.get('first_name', user.first_name)
+        user.last_name = request.json.get('last_name', user.last_name)
         db.session.commit()
     return jsonify({
             "id": user.id,
@@ -76,7 +71,7 @@ def profile():
             "email": user.email,
             "first_name": user.first_name,
             "last_name": user.last_name,
-            "organization": [organization.to_dict() for organization in user.organizations]
+            "organization": user.organization.to_dict()
         }), 200
 
 @app.route('/logout', methods=['POST'])
@@ -89,10 +84,6 @@ def logout():
 @auth_required
 def delete_account():
     user = request.user
-    for organization in user.organizations:
-        organization.members.remove(user)
-        if len(organization.members) == 0:
-            db.session.delete(organization)
     db.session.delete(user)
     db.session.commit()
     session.pop('user_id')
