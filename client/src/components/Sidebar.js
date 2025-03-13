@@ -23,7 +23,7 @@ const Sidebar = () => {
     >
       <Toolbar />
       <Box display="flex" flexDirection="column" alignItems="center" gap={1}>
-        <Avatar sx={{ width: 64, height: 64 }}> {/* Placeholder Avatar */}
+        <Avatar sx={{ width: 64, height: 64 }}>
           {user?.first_name?.[0]}{user?.last_name?.[0]}
         </Avatar>
         <Typography variant="h6" align="center">
@@ -35,14 +35,17 @@ const Sidebar = () => {
           {organization.name}
         </Typography>
       </Box>
-      <Button
-            variant="contained"
-            color="primary"
-            component={Link}
-            to="/organization/form"
-          >
-            Create Organization
+      {!organization &&
+        <Button
+          variant="contained"
+          color="primary"
+          component={Link}
+          to="/organization/form"
+        >
+          Create Organization
         </Button>
+      }
+    
       <List>
         <ListItem component={Link} to="/profile">
           <ListItemText primary="Profile" />

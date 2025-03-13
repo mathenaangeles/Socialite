@@ -9,12 +9,12 @@ import organizationReducer from './slices/organizationSlice'
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['user'],
+  whitelist: ['user',  'organization'],
 };
 
 const rootReducer = combineReducers({
   user: persistReducer({ ...persistConfig, key: 'user' }, userReducer),
-  organization: organizationReducer,
+  organization: persistReducer({ ...persistConfig, key: 'organization' }, organizationReducer),
 });
 
 

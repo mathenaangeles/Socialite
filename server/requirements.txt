@@ -33,12 +33,14 @@ Mako==1.3.9
 MarkupSafe==3.0.2
 msgspec==0.19.0
 oauthlib==2.1.0
+playwright==1.50.0
 proto-plus==1.26.0
 protobuf==4.25.2
 psycopg2-binary==2.9.9
 pyasn1==0.6.1
 pyasn1_modules==0.4.1
 pycparser==2.22
+pyee==12.1.1
 pyjnius==1.6.1
 pyodbc==5.2.0
 pyparsing==3.2.1

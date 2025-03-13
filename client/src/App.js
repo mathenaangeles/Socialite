@@ -18,17 +18,19 @@ function App() {
       <header>
         <Navbar/>
       </header>
-      <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+      <main>
+        <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
 
-          <Route path="/organization/:id" element={<PrivateRoute><Organization /></PrivateRoute>} />
-          <Route path="/organization/form/:id?" element={<PrivateRoute><OrganizationForm /></PrivateRoute>} />
+            <Route path="/organization/:id" element={<PrivateRoute><Organization /></PrivateRoute>} />
+            <Route path="/organization/form/:id?" element={<PrivateRoute><OrganizationForm /></PrivateRoute>} />
 
-          <Route path="*" element={<NotFound/>}/>
-      </Routes>
+            <Route path="*" element={<NotFound/>}/>
+        </Routes>
+      </main>
     </div>
   );
 }
