@@ -1,21 +1,26 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
+
+import { Delete } from "@mui/icons-material";
 import { TextField, Button, Container, Typography, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
 
 import { createOrganization, updateOrganization, getOrganization, addMembers, deleteMembers } from "../../slices/organizationSlice";
 
 const OrganizationForm = () => {
+  const { id } = useParams(); 
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { id } = useParams(); 
+
   const { organization, loading } = useSelector((state) => state.organization);
 
   const [name, setName] = useState("");
-  const [memberEmail, setMemberEmail] = useState(""); // For adding members
-  const [members, setMembers] = useState([]); // To manage displayed members
+  const [description, setDescription] = useState("");
 
+  const [members, setMembers] = useState([]);
+  const [memberEmail, setMemberEmail] = useState(""); 
+  
   useEffect(() => {
     if (id) {
       dispatch(getOrganization(id));
@@ -25,6 +30,7 @@ const OrganizationForm = () => {
   useEffect(() => {
     if (organization) {
       setName(organization.name || "");
+      setName(organization.description || "");
       setMembers(organization.members || []);
     }
   }, [organization]);
@@ -32,14 +38,19 @@ const OrganizationForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (id) {
-      await dispatch(updateOrganization({ id, name }));
+      await dispatch(updateOrganization( id, {
+        "name": name,
+        "description": description,
+      }));
       navigate(`/organization/${id}/edit`);
     } else {
-      const newOrg = await dispatch(createOrganization({ name }));
+      const newOrg = await dispatch(createOrganization({ 
+        "name": name,
+        "description": description,
+       }));
       if (newOrg.payload?.id) {
         navigate(`/organization/${newOrg.payload.id}/edit`);
       } else {
-        console.error("Failed to create organization:", newOrg);
         navigate("/organization");
       }
     }
@@ -49,15 +60,15 @@ const OrganizationForm = () => {
     if (memberEmail.trim() === "") return;
     const result = await dispatch(addMembers({ id, emails: [memberEmail] }));
     if (result.payload) {
-      setMembers([...members, { email: memberEmail }]); // Optimistic update
-      setMemberEmail(""); // Clear input field
+      setMembers([...members, { email: memberEmail }]);
+      setMemberEmail("");
     }
   };
 
   const handleRemoveMember = async (email) => {
     const result = await dispatch(deleteMembers({ id, emails: [email] }));
     if (result.payload) {
-      setMembers(members.filter((member) => member.email !== email)); // Update UI
+      setMembers(members.filter((member) => member.email !== email));
     }
   };
 
@@ -70,9 +81,17 @@ const OrganizationForm = () => {
         <form onSubmit={handleSubmit}>
           <TextField
             fullWidth
-            label="Organization Name"
+            label="Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            required
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            fullWidth
+            label="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
             required
             sx={{ mb: 2 }}
           />
@@ -96,7 +115,6 @@ const OrganizationForm = () => {
               </Button>
             </Box>
 
-            {/* Table for managing members */}
             <TableContainer component={Paper} sx={{ mt: 3 }}>
               <Table>
                 <TableHead>
@@ -111,7 +129,7 @@ const OrganizationForm = () => {
                       <TableCell>{member.email}</TableCell>
                       <TableCell align="right">
                         <IconButton onClick={() => handleRemoveMember(member.email)} color="error">
-                          <DeleteIcon />
+                          <Delete />
                         </IconButton>
                       </TableCell>
                     </TableRow>

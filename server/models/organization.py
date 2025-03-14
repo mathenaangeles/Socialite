@@ -8,6 +8,7 @@ class Organization(db.Model, SerializerMixin):
     
     id = db.Column(UNIQUEIDENTIFIER, primary_key=True, default=lambda: str(uuid4()))
     name = db.Column(db.String(250), unique=True, nullable=False)
+    description = db.Column(db.Text, nullable=True)
     
     members = db.relationship('User', back_populates='organization', lazy='dynamic')
 

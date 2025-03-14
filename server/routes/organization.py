@@ -8,23 +8,31 @@ from utils import auth_required, admin_required
 @app.route('/organization/create', methods=['POST'])
 @auth_required
 def create_organization():
-    name = request.json['name']
+    data = request.json
+    name = data.get('name')
+    description = data.get('description', None)
+
     existing_organization = Organization.query.filter_by(name=name).first()
     if existing_organization:
         return jsonify({
             "error": "An organization with this name already exists."
         }), 409
+    
     user = request.user
     if user.organization_id:
         return jsonify({"error": "The authenticated user is already a member of an organization."}), 400
-    new_organization = Organization(name=name)
+    
+    new_organization = Organization(name=name, description=description)
     db.session.add(new_organization)
     db.session.commit()
+
     user.organization_id = new_organization.id
     db.session.commit()
+
     return jsonify({
         "id": new_organization.id,
         "name": new_organization.name,
+        "description": new_organization.description,
         "members": [{"id": u.id, "email": u.email} for u in User.query.filter_by(organization_id=organization.id).all()]
     }), 200
 
@@ -44,9 +52,9 @@ def organization(id):
         db.session.commit()
         return { "id" : organization_id }, 204
     elif request.method == 'PUT':
-        name = request.json.get('name')
-        if name:
-            organization.name = name
+        data = request.json
+        organization.name = data.get('name', organization.name)
+        organization.description = data.get('description', organization.description)
         db.session.commit()
     return jsonify({
         "id": organization.id,

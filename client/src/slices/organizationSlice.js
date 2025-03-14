@@ -3,9 +3,9 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
 export const createOrganization = createAsyncThunk(
   '/organization/create',
-  async ({ name }, { rejectWithValue }) => {
+  async ( organizationData, { rejectWithValue }) => {
     try {
-      const { data } = await Axios.post('/organization/create', { name }, { withCredentials: true });
+      const { data } = await Axios.post('/organization/create', organizationData, { withCredentials: true });
       return data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);
@@ -27,9 +27,9 @@ export const getOrganization = createAsyncThunk(
 
 export const updateOrganization = createAsyncThunk(
   '/organization/update',
-  async ({ id, name }, { rejectWithValue }) => {
+  async ({ id, organizationData }, { rejectWithValue }) => {
     try {
-      const { data } = await Axios.put(`/organization/${id}`, { name }, { withCredentials: true });
+      const { data } = await Axios.put(`/organization/${id}`, organizationData, { withCredentials: true });
       return data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);

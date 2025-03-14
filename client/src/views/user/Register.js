@@ -1,7 +1,9 @@
+import { Link } from "react-router-dom";
 import { useNavigate } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { TextField, Button, Container, Typography, Paper, CircularProgress, Alert, Box } from '@mui/material';
+import { TextField, Button, Container, Typography, Paper, LinearProgress, Alert, Box } from '@mui/material';
+
 import { register } from '../../slices/userSlice';
 
 const Register = () => {
@@ -24,11 +26,27 @@ const Register = () => {
         }
     }, [user, navigate]); 
 
+    if (loading) return <LinearProgress />;
+        
+    if (error) return <Alert severity="error">{error}</Alert>
+
     return (
         <Container maxWidth="xs">
-            <Paper elevation={3} sx={{ padding: 4, mt: 8, textAlign: 'center' }}>
-                <Typography variant="h5" gutterBottom>
-                    Register
+            <Paper elevation={3} sx={{ p: 4, mt: 8, }}>
+                <Typography variant="h5" sx={{ mb: 1 }}>
+                    Create an account
+                </Typography>
+                <Typography sx={{ mb: 1 }}>
+                    Already have an account?{" "}
+                    <Link 
+                        to="/login" 
+                        style={{ color: "#7cbedf" }} 
+                        sx={{ 
+                            "&:visited": { color: "secondary.main" }
+                        }}
+                    >
+                        Log in
+                    </Link>
                 </Typography>
                 <form onSubmit={handleSubmit}>
                     <TextField
@@ -36,6 +54,7 @@ const Register = () => {
                         label="Email"
                         type="email"
                         variant="outlined"
+                        color="secondary"
                         margin="normal"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -46,12 +65,12 @@ const Register = () => {
                         label="Password"
                         type="password"
                         variant="outlined"
+                        color="secondary"
                         margin="normal"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
                     />
-                    {error && <Alert severity="error" sx={{ my: 2 }}>{error}</Alert>}
                     <Box sx={{ position: 'relative', mt: 2 }}>
                         <Button 
                             fullWidth 
@@ -60,20 +79,8 @@ const Register = () => {
                             color="primary"
                             disabled={loading}
                         >
-                            {loading ? 'Registering...' : 'Register'}
+                            Register
                         </Button>
-                        {loading && (
-                            <CircularProgress 
-                                size={24} 
-                                sx={{
-                                    position: 'absolute',
-                                    top: '50%',
-                                    left: '50%',
-                                    marginTop: '-12px',
-                                    marginLeft: '-12px',
-                                }} 
-                            />
-                        )}
                     </Box>
                 </form>
             </Paper>

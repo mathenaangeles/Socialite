@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { Box, AppBar, Toolbar, Button, Typography } from "@mui/material";
+import { Box, AppBar, Toolbar, Button } from "@mui/material";
 
 import { logout } from "../slices/userSlice";
 
@@ -16,29 +16,34 @@ const Navbar = () => {
 
   return (
     <Box>
-      <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-        <Toolbar>
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            Socialite
-          </Typography>
+      <AppBar position="fixed" sx={{ backgroundColor: "#000", zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+        <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+          <Box component={Link} to="/" sx={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
+            <Box
+              component="img"
+              src="/images/logo.png"
+              alt="Logo"
+              sx={{ height: 50, mr: 1 }}
+            />
+          </Box>
           {!user ? (
-            <>
-              <Button color="inherit" component={Link} to="/login">
+            <Box>
+              <Button sx={{ mx: 1 }} variant="contained" color="primary"  component={Link} to="/login">
                 Login
               </Button>
-              <Button color="inherit" component={Link} to="/register">
+              <Button sx={{ mx: 1 }} variant="outlined" color="secondary" component={Link} to="/register">
                 Register
               </Button>
-            </>
+            </Box>
           ) : (
-            <>
-              <Button color="inherit" component={Link} to="/profile">
+            <Box>
+              <Button sx={{ mx: 1 }} color="inherit" component={Link} to="/profile">
                 Profile
               </Button>
-              <Button color="inherit" onClick={handleLogout}>
+              <Button sx={{ mx: 1 }} variant="outlined" color="secondary" onClick={handleLogout}>
                 Logout
               </Button>
-            </>
+            </Box>
           )}
         </Toolbar>
       </AppBar>

@@ -1,19 +1,19 @@
 import React, { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { Box, Typography, Button, LinearProgress, List, ListItem, ListItemText, Paper, useMediaQuery } from "@mui/material";
+import { Box, Typography, Button, LinearProgress, TableContainer, Table, TableHead, Paper, TableRow, TableCell, TableBody, Alert } from "@mui/material";
 
 import Sidebar from "../../components/Sidebar";
 import { getOrganization } from "../../slices/organizationSlice";
 
 const Organization = () => {
   const { id } = useParams();
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { organization, loading } = useSelector((state) => state.organization);
+
+  const { organization, loading, error } = useSelector((state) => state.organization);
   
-  // Check if screen size is small
-  const isSmallScreen = useMediaQuery("(max-width: 900px)");
 
   useEffect(() => {
     if (id) {
@@ -23,57 +23,67 @@ const Organization = () => {
 
   if (loading) return <LinearProgress />;
 
+  if (error) return <Alert severity="error">{error}</Alert>
+
   return (
-    <Box sx={{ display: "flex", flexDirection: isSmallScreen ? "column" : "row" }}>
-      {!isSmallScreen && <Sidebar />} 
-      
-      <Box 
-        sx={{ 
-          flexGrow: 1, 
-          ml: isSmallScreen ? 0 : "260px", 
-          mt: "64px",  // 🔥 Push content down to avoid overlap with Navbar
-          p: 3, 
-          boxShadow: 3, 
-          borderRadius: 2, 
-          maxWidth: isSmallScreen ? "100%" : "calc(100% - 260px)",
-          mx: "auto"
-        }}
-      >
+    <Box sx={{ display: "flex" }}>
+      <Sidebar />
+      <Box sx={{ flex: 1, p: 3 }}>
         {organization ? (
-          <>
-            <Typography variant="h5" gutterBottom>{organization.name}</Typography>
-            <Typography variant="h6" sx={{ mt: 2 }}>Members:</Typography>
-            <Paper sx={{ p: 2, mt: 1 }}>
-              <List>
-                {organization.members.map((member) => (
-                  <ListItem key={member.id}>
-                    <ListItemText primary={member.email} />
-                  </ListItem>
-                ))}
-              </List>
-            </Paper>
+          <Box>
+            <Typography variant="h4" fontWeight="bold">
+              {organization.name}
+            </Typography>
+            <Typography variant="body1">
+              {organization.description}
+            </Typography>
+
+            <TableContainer component={Paper} sx={{ mt: 2, borderRadius: 2, boxShadow: 3 }}>
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+                    <TableCell sx={{ fontWeight: "bold" }}>ID</TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>Email</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {organization.members.map((member) => (
+                    <TableRow key={member.id}>
+                      <TableCell>{member.id}</TableCell>
+                      <TableCell>{member.email}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
             <Button 
               variant="contained" 
-              sx={{ mt: 2 }} 
-              onClick={() => navigate(`/organization/form/${id}`)}
+              sx={{ mt: 3, alignSelf: "flex-start" }} 
+              onClick={() => navigate(`/organization/form/${organization.id}`)}
             >
               Edit Organization
             </Button>
-          </>
+            
+          </Box>
         ) : (
-          <>
-            <Typography variant="h5" gutterBottom>You are not part of an organization.</Typography>
+          <Box textAlign="center">
+            <Typography variant="h5" fontWeight="bold" gutterBottom>
+              You are not part of an organization.
+            </Typography>
             <Button 
               variant="contained" 
               color="primary" 
+              sx={{ mt: 2 }} 
               onClick={() => navigate("/organization/form")}
             >
               Create Organization
             </Button>
-          </>
+          </Box>
         )}
       </Box>
     </Box>
+  
   );
 };
 
