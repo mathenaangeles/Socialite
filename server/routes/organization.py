@@ -59,7 +59,7 @@ def organization(id):
     return jsonify({
         "id": organization.id,
         "name": organization.name,
-        "members": [{"id": u.id, "email": u.email} for u in User.query.filter_by(organization_id=organization.id).all()]
+        "members": [{"id": u.id, "email": u.email, "first_name": u.first_name or None, "last_name": u.last_name or None} for u in User.query.filter_by(organization_id=organization.id).all()]
     }), 200
 
 @app.route('/organization/members/<id>', methods=['PUT', 'DELETE'])

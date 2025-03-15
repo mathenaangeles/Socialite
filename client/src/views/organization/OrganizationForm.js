@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
+import { Delete as DeleteIcon } from "@mui/icons-material";
+import { Card, Divider, Alert, LinearProgress, TextField, Button, Container, Typography, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton } from "@mui/material";
 
-import { Delete } from "@mui/icons-material";
-import { TextField, Button, Container, Typography, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton } from "@mui/material";
-
+import Sidebar from "../../components/Sidebar";
 import { createOrganization, updateOrganization, getOrganization, addMembers, deleteMembers } from "../../slices/organizationSlice";
 
 const OrganizationForm = () => {
@@ -13,7 +13,7 @@ const OrganizationForm = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { organization, loading } = useSelector((state) => state.organization);
+  const { organization, loading, error } = useSelector((state) => state.organization);
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -28,12 +28,12 @@ const OrganizationForm = () => {
   }, [id, dispatch]);
 
   useEffect(() => {
-    if (organization) {
+    if (id) {
       setName(organization.name || "");
-      setName(organization.description || "");
+      setDescription(organization.description || "");
       setMembers(organization.members || []);
     }
-  }, [organization]);
+  }, [id, organization]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -72,75 +72,112 @@ const OrganizationForm = () => {
     }
   };
 
-  return (
-    <Container maxWidth="sm">
-      <Box sx={{ mt: 4, p: 3, boxShadow: 3, borderRadius: 2 }}>
-        <Typography variant="h5" gutterBottom>
-          {id ? "Edit Organization" : "Create Organization"}
-        </Typography>
-        <form onSubmit={handleSubmit}>
-          <TextField
-            fullWidth
-            label="Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            fullWidth
-            label="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            required
-            sx={{ mb: 2 }}
-          />
-          <Button type="submit" variant="contained" color="primary" fullWidth disabled={loading}>
-            {id ? "Update" : "Create"}
-          </Button>
-        </form>
+  if (loading) return <LinearProgress />;
 
-        {id && (
-          <>
-            <Typography variant="h6" sx={{ mt: 3 }}>Manage Members</Typography>
-            <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
+  return (
+    <Box sx={{ display: "flex", minHeight: "100vh" }}>
+      <Sidebar />
+      <Container>
+        <Box sx={{ my: 3, p: 3 }}>
+          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+
+          <Card sx={{ p: 3 }}>
+            <Typography variant="h5" sx={{ mb: 2 }}>
+              {id ? "Edit Organization" : "Create Organization"}
+            </Typography>
+            <Divider sx={{ mb: 2 }}/>
+
+            <Box component="form" onSubmit={handleSubmit}>
               <TextField
                 fullWidth
-                label="Enter Email to Add"
-                value={memberEmail}
-                onChange={(e) => setMemberEmail(e.target.value)}
+                label="Name"
+                value={name}
+                margin="normal"
+                color="secondary"
+                variant="outlined"
+                onChange={(e) => setName(e.target.value)}
+                required
               />
-              <Button variant="contained" color="primary" onClick={handleAddMember}>
-                Add
-              </Button>
+              <TextField
+                fullWidth
+                label="Description"
+                value={description}
+                margin="normal"
+                color="secondary"
+                variant="outlined"
+                onChange={(e) => setDescription(e.target.value)}
+                multiline
+                minRows={3}
+              />
+              <Box sx={{ display: "flex", gap: 1.5, mt: 2 }}>
+                <Button type="submit" variant="contained" color="primary" disabled={loading}>
+                  Submit
+                </Button>
+                <Button variant="outlined" color="secondary" onClick={() => navigate(-1)}>
+                  Cancel
+                </Button>
+              </Box>
             </Box>
+          </Card>
+  
+          {id && (
+            <Card sx={{ p: 3, my: 4 }}>
+              <Typography variant="h5" sx={{ mb: 2 }}>
+                Manage Memberships
+              </Typography>
+              <Divider sx={{ mb: 2 }}/>
 
-            <TableContainer component={Paper} sx={{ mt: 3 }}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell><strong>Email</strong></TableCell>
-                    <TableCell align="right"><strong>Action</strong></TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {members.map((member) => (
-                    <TableRow key={member.email}>
-                      <TableCell>{member.email}</TableCell>
-                      <TableCell align="right">
-                        <IconButton onClick={() => handleRemoveMember(member.email)} color="error">
-                          <Delete />
-                        </IconButton>
-                      </TableCell>
+              <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
+                <TextField
+                  fullWidth
+                  label="Enter Email Address"
+                  value={memberEmail}
+                  onChange={(e) => setMemberEmail(e.target.value)}
+                  size="small"
+                  color="secondary"
+                  variant="outlined"
+                />
+                <Button variant="contained" color="primary" onClick={handleAddMember}>
+                  Add
+                </Button>
+              </Box>
+  
+              <TableContainer component={Paper} sx={{  mt: 2, borderRadius: 2, boxShadow: 2 }}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: "bold" }}>Email</TableCell>
+                      <TableCell sx={{ fontWeight: "bold" }} align="right">Action</TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </>
-        )}
-      </Box>
-    </Container>
+                  </TableHead>
+                  <TableBody>
+                    {members.length > 0 ? (
+                      members.map((member) => (
+                        <TableRow key={member.email}>
+                          <TableCell>{member.email}</TableCell>
+                          <TableCell align="right">
+                            <IconButton onClick={() => handleRemoveMember(member.email)} color="error">
+                              <DeleteIcon />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={2} align="center">
+                          <i>No members added yet.</i>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Card>
+          )}
+
+        </Box>
+      </Container>
+    </Box>
   );
 };
 

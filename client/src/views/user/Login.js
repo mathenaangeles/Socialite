@@ -27,8 +27,6 @@ const Login = () => {
     }, [user, navigate]); 
 
     if (loading) return <LinearProgress />;
-    
-    if (error) return <Alert severity="error">{error}</Alert>
 
     return (
         <Container maxWidth="xs">
@@ -48,6 +46,7 @@ const Login = () => {
                         Create an account
                     </Link>
                 </Typography>
+                {error &&  <Alert sx={{mb:1}} severity="error">{error}</Alert>}
                 <form onSubmit={handleSubmit}>
                     <TextField
                         fullWidth

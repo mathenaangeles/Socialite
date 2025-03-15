@@ -1,58 +1,76 @@
 import React from "react";
-import { Link } from "react-router-dom";
-import { Drawer, List, ListItem, ListItemText, Toolbar, Box, Typography, Avatar, Button } from "@mui/material";
 import { useSelector } from "react-redux";
+import { Link, useLocation } from "react-router-dom";
+import { Person, Business } from "@mui/icons-material";
+import { Drawer, List, ListItem, ListItemText, ListItemIcon, ListItemButton, Toolbar, Box, Typography, Avatar, Button, Divider } from "@mui/material";
 
 const Sidebar = () => {
-    const { user } = useSelector((state) => state.user);
-    const organization = user?.organization || { name: "No Organization" };
+  const location = useLocation();
+  const { user } = useSelector((state) => state.user);
+
+  const navItems = [
+    { text: "Profile", icon: <Person />, path: "/profile" },
+    { text: "Organization", icon: <Business />, path: `/organization/${user?.organization.id}` },
+  ];
 
   return (
     <Drawer
       variant="permanent"
       anchor="left"
       sx={{
-        width: 240,
+        width: 280,
         flexShrink: 0,
         "& .MuiDrawer-paper": {
-          width: 240,
+          width: 280,
           boxSizing: "border-box",
-          padding: 2,
+          color: "#ffffff",
+          borderRight: "1px solid rgba(255, 255, 255, 0.1)",
         },
       }}
     >
       <Toolbar />
-      <Box display="flex" flexDirection="column" alignItems="center" gap={1}>
-        <Avatar sx={{ width: 64, height: 64 }}>
-          {user?.first_name?.[0]}{user?.last_name?.[0]}
-        </Avatar>
-        <Typography variant="h6" align="center">
-          {user ? `${user.first_name} ${user.last_name}` : "Guest"}
-        </Typography>
+      <Box display="flex" alignItems="center" justifyContent="space-between" p={2}>
+        <Box display="flex" alignItems="center" gap={1.5}>
+          <Avatar 
+            sx={{ width: 36, height: 36 }} 
+            src={""}
+          />
+          <Box display="flex" flexDirection="column" lineHeight={1.2}>
+            <Typography variant="body2" fontWeight="bold">{user ? `${user.first_name} ${user.last_name}` : "Guest"}</Typography>
+            {user?.organization ? 
+            (<Typography variant="caption" color="grey.400">{user?.organization.name}</Typography>):
+            (<Typography variant="caption" color="grey.400">No Organization</Typography>)}
+            
+          </Box>
+        </Box>
       </Box>
-      <Box my={2} p={1} bgcolor="grey.200" borderRadius={2} textAlign="center">
-        <Typography variant="body1" fontWeight="bold" >
-          {organization.name}
-        </Typography>
-      </Box>
-      {!organization &&
-        <Button
-          variant="contained"
-          color="primary"
-          component={Link}
-          to="/organization/form"
-        >
-          Create Organization
-        </Button>
-      }
-    
-      <List>
-        <ListItem component={Link} to="/profile">
-          <ListItemText primary="Profile" />
-        </ListItem>
-        <ListItem component={Link} to={`/organization/${organization.id}`}>
-          <ListItemText primary="Organization" />
-        </ListItem>
+
+      <Divider />
+      <List sx={{ px: 1 }}>
+        {navItems.map((item) => (
+          <ListItem key={item.text} disablePadding>
+            <ListItemButton
+              component={Link}
+              to={item.path}
+              selected={location.pathname === item.path}
+              sx={{
+                borderRadius: 2,
+                my: 0.5,
+                color: "grey.300",
+                "&.Mui-selected": {
+                  bgcolor: "rgba(255, 255, 255, 0.1)",
+                  color: "#fff",
+                },
+                "&:hover": {
+                  bgcolor: "rgba(255, 255, 255, 0.2)",
+                },
+              }}
+            >
+              <ListItemIcon sx={{ color: "grey.400" }}>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.text} />
+            </ListItemButton>
+          </ListItem>
+        ))}
       </List>
     </Drawer>
   );
