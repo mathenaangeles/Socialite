@@ -12,6 +12,7 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 import routes.user
+import routes.product
 import routes.organization
 
 if __name__ == '__main__':

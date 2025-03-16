@@ -37,21 +37,17 @@ const OrganizationForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    let organizationData = {
+      "name": name,
+      "description": description,
+    }
     if (id) {
-      await dispatch(updateOrganization( id, {
-        "name": name,
-        "description": description,
-      }));
-      navigate(`/organization/${id}/edit`);
+      await dispatch(updateOrganization( {id, organizationData} ));
+      navigate(`/organization/form/${id}`);
     } else {
-      const newOrg = await dispatch(createOrganization({ 
-        "name": name,
-        "description": description,
-       }));
-      if (newOrg.payload?.id) {
-        navigate(`/organization/${newOrg.payload.id}/edit`);
-      } else {
-        navigate("/organization");
+      const newOrganization = await dispatch(createOrganization(organizationData));
+      if (newOrganization.payload?.id) {
+        navigate(`/organization/form/${newOrganization.payload.id}`);
       }
     }
   };

@@ -12,6 +12,10 @@ import Register from './views/user/Register';
 import Organization from './views/organization/Organization';
 import OrganizationForm from './views/organization/OrganizationForm';
 
+import Product from './views/product/Product';
+import ProductForm from './views/product/ProductForm';
+import ProductList from './views/product/ProductList';
+
 function App() {
   return (
     <div className="App">
@@ -27,6 +31,10 @@ function App() {
 
             <Route path="/organization/:id" element={<PrivateRoute><Organization /></PrivateRoute>} />
             <Route path="/organization/form/:id?" element={<PrivateRoute><OrganizationForm /></PrivateRoute>} />
+
+            <Route path="/products" element={<PrivateRoute><ProductList/></PrivateRoute>} />
+            <Route path="/product/:id" element={<PrivateRoute><Product/></PrivateRoute>} />
+            <Route path="/product/form/:id?" element={<PrivateRoute><ProductForm/></PrivateRoute>} />
 
             <Route path="*" element={<NotFound/>}/>
         </Routes>

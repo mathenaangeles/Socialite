@@ -3,7 +3,6 @@
 ### Prerequisites
 - [Python 3.9+](https://www.python.org/downloads/)
 - [Node.js](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
-- [Redis](https://redis.io/downloads/)
 
 ### Getting Started
 1. Create a virtual environment by running `python -m venv .venv`. 

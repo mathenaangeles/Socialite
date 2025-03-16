@@ -3,7 +3,7 @@ from flask import request, jsonify
 
 from models.user import User
 from models.organization import Organization
-from utils import auth_required, admin_required
+from utils import auth_required
 
 @app.route('/organization/create', methods=['POST'])
 @auth_required
@@ -59,6 +59,7 @@ def organization(id):
     return jsonify({
         "id": organization.id,
         "name": organization.name,
+        "description": organization.description,
         "members": [{"id": u.id, "email": u.email, "first_name": u.first_name or None, "last_name": u.last_name or None} for u in User.query.filter_by(organization_id=organization.id).all()]
     }), 200
 
@@ -93,11 +94,11 @@ def members(id):
     return jsonify({
         "id": organization.id,
         "name": organization.name,
+        "description": organization.description,
         "members": [{"id": u.id, "email": u.email} for u in User.query.filter_by(organization_id=organization.id).all()]
     }), 200
 
 @app.route('/organizations', methods=['GET'])
-@admin_required
 def organizations():
     organizations = Organization.query.all()
     return jsonify([

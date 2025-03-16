@@ -1,8 +1,8 @@
 import React from "react";
 import { useSelector } from "react-redux";
 import { Link, useLocation } from "react-router-dom";
-import { Person, Business } from "@mui/icons-material";
-import { Drawer, List, ListItem, ListItemText, ListItemIcon, ListItemButton, Toolbar, Box, Typography, Avatar, Button, Divider } from "@mui/material";
+import { Person, Business, Storefront } from "@mui/icons-material";
+import { Button, Drawer, List, ListItem, ListItemText, ListItemIcon, ListItemButton, Toolbar, Box, Typography, Avatar, Divider } from "@mui/material";
 
 const Sidebar = () => {
   const location = useLocation();
@@ -11,6 +11,7 @@ const Sidebar = () => {
   const navItems = [
     { text: "Profile", icon: <Person />, path: "/profile" },
     { text: "Organization", icon: <Business />, path: `/organization/${user?.organization.id}` },
+    { text: "Products", icon: <Storefront />, path: `/products` },
   ];
 
   return (
@@ -46,6 +47,7 @@ const Sidebar = () => {
       </Box>
 
       <Divider />
+      {!user?.organization && (<Button sx={{m: 2}} variant="contained" component={Link} to="/organization/form">Create Organization</Button>)}
       <List sx={{ px: 1 }}>
         {navItems.map((item) => (
           <ListItem key={item.text} disablePadding>

@@ -11,8 +11,11 @@ class Organization(db.Model, SerializerMixin):
     description = db.Column(db.Text, nullable=True)
     
     members = db.relationship('User', back_populates='organization', lazy='dynamic')
+    contents = db.relationship('Content', back_populates='organization', lazy='dynamic')
+    products = db.relationship('Product', back_populates='organization', lazy='dynamic')
+    campaigns = db.relationship('Campaign', back_populates='organization', lazy='dynamic')
 
-    serialize_rules = ('-members',)
+    serialize_rules = ('-members', '-contents', '-products', '-campaigns')
     
     def __repr__(self):
         return f'<Organization {self.name}>'
