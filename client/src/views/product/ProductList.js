@@ -1,9 +1,8 @@
 import React, { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { LinearProgress, Divider, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Button, Typography, Box, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
-
 
 import Sidebar from "../../components/Sidebar";
 import { getProducts, deleteProduct } from '../../slices/productSlice';
@@ -65,7 +64,14 @@ const ProductList = () => {
                 <TableBody>
                   {products.map(product => (
                     <TableRow key={product.id}>
-                      <TableCell>{product.name}</TableCell>
+                      <TableCell>
+                        <Link 
+                            to={`/product/${product.id}`} 
+                            style={{ textDecoration: "none", color: "inherit", fontWeight: "bold" }}
+                        >
+                            {product.name}
+                        </Link>
+                      </TableCell>
                       <TableCell>{product.category}</TableCell>
                       <TableCell>${product.price}</TableCell>
                       <TableCell>

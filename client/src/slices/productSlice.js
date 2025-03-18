@@ -119,7 +119,7 @@ const productSlice = createSlice({
         })
         .addCase(deleteProduct.fulfilled, (state, action) => {
             state.loading = false;
-            state.products = state.organizations.filter(product => product.id !== action.payload.id);
+            state.products = state.products.filter(product => product.id !== action.payload.id);
             state.error = null;
         })
         .addCase(deleteProduct.rejected, (state, action) => {

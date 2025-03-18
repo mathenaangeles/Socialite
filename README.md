@@ -27,6 +27,9 @@ DB_DRIVER=ODBC Driver 17 for SQL Server
 DB_ENCRYPT=yes
 DB_TRUST_SERVER_CERTIFICATE=no
 DB_TIMEOUT=30
+AZURE_STORAGE_CONNECTION_STRING="DefaultEndpointsProtocol=https;AccountName=socialitestorageaccount;AccountKey=a3VX8vNQFLFuNLmlE6/x3tsfuF77J0fUyXiHhvznDELVHj2SZ4acAOUGof0TToyz2V0jzP+5MLXo+AStzxLhiQ==;EndpointSuffix=core.windows.net"
+AZURE_CONTAINER_NAME=images
+AZURE_STORAGE_ACCOUNT_NAME=socialitestorageaccount
 ```
 5. In the `server` directory, run `flask run`.
 6. Navigate to the `client` directory and run `npm install`.

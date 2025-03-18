@@ -14,7 +14,7 @@ class Content(db.Model, SerializerMixin):
     caption = db.Column(db.Text, nullable=True)
     link = db.Column(db.String(500), nullable=True)
 
-    media_url = db.Column(JSON, nullable=True)
+    media = db.Column(JSON, nullable=True)
 
     likes = db.Column(db.Integer, default=0)
     shares = db.Column(db.Integer, default=0)

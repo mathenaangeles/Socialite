@@ -1,6 +1,7 @@
 import os
 import urllib.parse
 from dotenv import load_dotenv
+from azure.storage.blob import BlobServiceClient
 
 load_dotenv()
 basedir = os.path.abspath(os.path.dirname(__file__))
