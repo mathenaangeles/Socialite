@@ -16,6 +16,10 @@ import Product from './views/product/Product';
 import ProductForm from './views/product/ProductForm';
 import ProductList from './views/product/ProductList';
 
+import Content from './views/content/Content';
+import ContentForm from './views/content/ContentForm';
+import ContentList from './views/content/ContentList';
+
 function App() {
   return (
     <div className="App">
@@ -35,6 +39,10 @@ function App() {
             <Route path="/products" element={<PrivateRoute><ProductList/></PrivateRoute>} />
             <Route path="/product/:id" element={<PrivateRoute><Product/></PrivateRoute>} />
             <Route path="/product/form/:id?" element={<PrivateRoute><ProductForm/></PrivateRoute>} />
+
+            <Route path="/contents" element={<PrivateRoute><ContentList/></PrivateRoute>} />
+            <Route path="/content/:id" element={<PrivateRoute><Content/></PrivateRoute>} />
+            <Route path="/content/form/:id?" element={<PrivateRoute><ContentForm/></PrivateRoute>} />
 
             <Route path="*" element={<NotFound/>}/>
         </Routes>

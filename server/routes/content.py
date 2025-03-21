@@ -20,7 +20,7 @@ def create_content():
         return jsonify({"error": "User is not part of any organization."}), 403
     
     media_files = request.files.getlist('media')
-    media = [upload_image_to_azure(img, "content") for img in media_files if img.filename]  # Ensure valid files
+    media = [upload_image_to_azure(img, "content") for img in media_files if img]
 
     new_content = Content(
         title=title,
@@ -65,7 +65,8 @@ def content(id):
         content.link = data.get('link', content.link)
         
         new_media = request.files.getlist('media')
-        existing_media = data.get('existing_media', []) 
+        existing_media = data.get('existing_media') 
+        removed_media = set(content.media) - set(existing_media)
         removed_media = [med for med in (content.media or []) if med not in existing_media]
         for med in removed_media:
             delete_image_from_azure(med)

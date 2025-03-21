@@ -6,6 +6,7 @@ import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import userReducer from './slices/userSlice'; 
 import organizationReducer from './slices/organizationSlice'
 import productReducer from './slices/productSlice'
+import contentReducer from './slices/contentSlice'
 
 const persistConfig = {
   key: 'root',
@@ -17,6 +18,7 @@ const rootReducer = combineReducers({
   user: persistReducer({ ...persistConfig, key: 'user' }, userReducer),
   organization: persistReducer({ ...persistConfig, key: 'organization' }, organizationReducer),
   product: productReducer,
+  content: contentReducer,
 });
 
 

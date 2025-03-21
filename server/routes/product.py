@@ -69,7 +69,7 @@ def product(id):
         for img in removed_images:
             delete_image_from_azure(img)
         uploaded_images = [upload_image_to_azure(img, "products") for img in new_images if img]
-        product.images = existing_images + uploaded_images
+        product.images = existing_images + uploaded_images if existing_images else uploaded_images
 
         db.session.commit()
 

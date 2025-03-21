@@ -5,28 +5,28 @@ import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { LinearProgress, Divider, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Button, Typography, Box, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 
 import Sidebar from "../../components/Sidebar";
-import { getProducts, deleteProduct } from '../../slices/productSlice';
+import { getContents, deleteContent } from '../../slices/contentSlice';
 
-const ProductList = () => {
+const ContentList = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    const { products, loading, error } = useSelector(state => state.product);
+    const { contents, loading, error } = useSelector(state => state.content);
 
     const [open, setOpen] = useState(false);
-    const [selectedProduct, setSelectedProduct] = useState(null);
+    const [selectedContent, setSelectedContent] = useState(null);
   
     useEffect(() => {
-      dispatch(getProducts());
+        dispatch(getContents());
     }, [dispatch]);
   
     const handleDeleteClick = (id) => {
-      setSelectedProduct(id);
-      setOpen(true);
+        setSelectedContent(id);
+        setOpen(true);
     };
   
     const handleConfirmDelete = () => {
-      dispatch(deleteProduct(selectedProduct));
+      dispatch(deleteContent(selectedContent));
       setOpen(false);
     };
   
@@ -41,44 +41,40 @@ const ProductList = () => {
         <Sidebar />
         <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
           <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 3 }}>
-            <Typography variant="h4" fontWeight="bold">Products</Typography>
-            <Button variant="contained" color="primary" onClick={() => navigate('/product/form')}>
-              Add Product
+            <Typography variant="h4" fontWeight="bold">Contents</Typography>
+            <Button variant="contained" color="primary" onClick={() => navigate('/content/form')}>
+              Add Content
             </Button>
           </Box>
           <Divider sx={{ mb: 3 }} />
           {loading && <Typography>Loading...</Typography>}
           {error && <Typography color="error">{error}</Typography>}
-          {products.length === 0 && <Typography>No products found.</Typography>}
-          {products.length > 0 && (
+          {contents.length === 0 && <Typography>No content found.</Typography>}
+          {contents.length > 0 && (
             <TableContainer component={Paper} sx={{ mt: 3 }}>
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Name</TableCell>
-                    <TableCell>Category</TableCell>
-                    <TableCell>Price</TableCell>
+                    <TableCell>Title</TableCell>
                     <TableCell>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {products.map(product => (
-                    <TableRow key={product.id}>
+                  {contents.map(content => (
+                    <TableRow key={content.id}>
                       <TableCell>
                         <Link 
-                            to={`/product/${product.id}`} 
+                            to={`/content/${content.id}`} 
                             style={{ textDecoration: "none", color: "inherit", fontWeight: "bold" }}
                         >
-                            {product.name}
+                            {content.title}
                         </Link>
                       </TableCell>
-                      <TableCell>{product.category}</TableCell>
-                      <TableCell>{product.price} {product.currency}</TableCell>
                       <TableCell flex>
-                        <IconButton color="primary" onClick={() => navigate(`/product/form/${product.id}`)}>
+                        <IconButton color="primary" onClick={() => navigate(`/content/form/${content.id}`)}>
                           <EditIcon />
                         </IconButton>
-                        <IconButton color="error" onClick={() => handleDeleteClick(product.id)}>
+                        <IconButton color="error" onClick={() => handleDeleteClick(content.id)}>
                           <DeleteIcon />
                         </IconButton>
                       </TableCell>
@@ -92,7 +88,7 @@ const ProductList = () => {
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogContent>
               <DialogContentText>
-                Are you sure you want to delete this product? This action cannot be undone.
+                Are you sure you want to delete this content? This action cannot be undone.
               </DialogContentText>
             </DialogContent>
             <DialogActions>
@@ -105,5 +101,5 @@ const ProductList = () => {
     );
   };
   
-  export default ProductList;
+  export default ContentList;
   

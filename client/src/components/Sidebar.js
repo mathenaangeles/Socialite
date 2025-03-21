@@ -1,7 +1,7 @@
 import React from "react";
 import { useSelector } from "react-redux";
 import { Link, useLocation } from "react-router-dom";
-import { Person, Business, Storefront } from "@mui/icons-material";
+import { Person, Business, Storefront, PermMedia } from "@mui/icons-material";
 import { Button, Drawer, List, ListItem, ListItemText, ListItemIcon, ListItemButton, Toolbar, Box, Typography, Avatar, Divider } from "@mui/material";
 
 const Sidebar = () => {
@@ -12,6 +12,7 @@ const Sidebar = () => {
     { text: "Profile", icon: <Person />, path: "/profile" },
     { text: "Organization", icon: <Business />, path: `/organization/${user?.organization.id}` },
     { text: "Products", icon: <Storefront />, path: `/products` },
+    { text: "Content", icon: <PermMedia />, path: `/contents` },
   ];
 
   return (

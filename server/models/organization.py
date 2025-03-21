@@ -13,9 +13,8 @@ class Organization(db.Model, SerializerMixin):
     members = db.relationship('User', back_populates='organization', lazy='dynamic')
     contents = db.relationship('Content', back_populates='organization', lazy='dynamic')
     products = db.relationship('Product', back_populates='organization', lazy='dynamic')
-    campaigns = db.relationship('Campaign', back_populates='organization', lazy='dynamic')
 
-    serialize_rules = ('-members', '-contents', '-products', '-campaigns')
+    serialize_rules = ('-members', '-contents', '-products')
     
     def __repr__(self):
         return f'<Organization {self.name}>'

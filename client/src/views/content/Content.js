@@ -5,22 +5,22 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Box, Card, CardContent, Typography, Button, LinearProgress, Alert, Divider } from "@mui/material";
 
 import Sidebar from "../../components/Sidebar";
-import { getProduct } from "../../slices/productSlice";
+import { getContent } from "../../slices/contentSlice";
 
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
-const Product = () => {
+const Content = () => {
   const { id } = useParams();
   
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { product, loading, error } = useSelector((state) => state.product);
+  const { content, loading, error } = useSelector((state) => state.content);
 
   useEffect(() => {
     if (id) {
-      dispatch(getProduct(id));
+      dispatch(getContent(id));
     }
   }, [id, dispatch]);
 
@@ -29,7 +29,7 @@ const Product = () => {
 
   const settings = {
     dots: true,
-    infinite: product.images.length > 1,
+    infinite: content.media.length > 1,
     speed: 500,
     slidesToShow: 1,
     slidesToScroll: 1,
@@ -43,13 +43,13 @@ const Product = () => {
     <Box component="main" sx={{ flexGrow: 1, p: 3, display: "flex", justifyContent: "center" }}>
       <Card sx={{ width: "90%", maxWidth: 900, p: 3 }}>
         <Box sx={{ maxWidth: 600, mx: "auto", mb: 3 }}>
-          {product?.images?.length > 0 ? (
+          {content?.media?.length > 0 ? (
             <Slider {...settings}>
-              {product.images.map((img, index) => (
+              {content.images.map((img, index) => (
                 <Box key={index} sx={{ display: "flex", justifyContent: "center" }}>
                   <img 
                     src={img} 
-                    alt={`Product ${index + 1}`} 
+                    alt={`Content ${index + 1}`} 
                     style={{ width: "100%", maxHeight: 400, objectFit: "contain", borderRadius: "8px" }} 
                   />
                 </Box>
@@ -63,17 +63,11 @@ const Product = () => {
         </Box>
         <CardContent>
           <Typography variant="h4" fontWeight="bold" gutterBottom>
-            {product?.name || "Product Name"}
+            {content?.title || "No Title"}
           </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-            {product?.description || "No description available."}
-          </Typography>
-          <Divider sx={{ my: 2 }} />
-          <Typography variant="h6">Category: {product?.category || "N/A"}</Typography>
-          <Typography variant="h6">Price: {product?.currency} {product?.price?.toFixed(2) || "0.00"}</Typography>
           <Divider sx={{ my: 2 }} />
           <Box sx={{ display: "flex", gap: 1.5, mt: 2 }}>
-            <Button variant="contained" color="primary" onClick={() => navigate(`/product/form/${id}`)}>
+            <Button variant="contained" color="primary" onClick={() => navigate(`/content/form/${id}`)}>
               Edit
             </Button>
             <Button variant="outlined" color="secondary" onClick={() => navigate(-1)}>
@@ -87,4 +81,4 @@ const Product = () => {
   );
 };
 
-export default Product;
+export default Content;
