@@ -7,6 +7,7 @@ class Content(db.Model, SerializerMixin):
     __tablename__ = 'content'
 
     id = db.Column(UNIQUEIDENTIFIER, primary_key=True, default=lambda: str(uuid4()))
+    title = db.Column(db.String(500), nullable=False)
     channel = db.Column(db.String(250), nullable=False)
     type = db.Column(db.String(250), nullable=False)
     objective = db.Column (db.Text, nullable=True)
@@ -14,7 +15,6 @@ class Content(db.Model, SerializerMixin):
 
     status = db.Column(db.String(250), nullable=False)
     
-    title = db.Column(db.String(500), nullable=False)
     link = db.Column(db.String(500), nullable=True,)
     text = db.Column(db.Text, nullable=True)
     media = db.Column(JSON, nullable=True, default=list)
