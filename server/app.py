@@ -14,6 +14,7 @@ migrate = Migrate(app, db)
 import routes.user
 import routes.product
 import routes.organization
+import routes.content
 
 if __name__ == '__main__':
     app.run(debug=True)

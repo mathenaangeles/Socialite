@@ -50,7 +50,7 @@ export const deleteProduct = createAsyncThunk(
 );
   
 export const getProducts = createAsyncThunk(
-  '/products',
+  '/products/all',
   async (_, { rejectWithValue }) => {
     try {
       const { data } = await Axios.get('/products', { withCredentials: true });

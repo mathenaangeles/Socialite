@@ -172,7 +172,6 @@ def content(id):
 
     return jsonify(content.to_dict()), 200
 
-
 @app.route('/contents', methods=['GET'])
 @auth_required
 def contents():

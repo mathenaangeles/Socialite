@@ -50,7 +50,7 @@ export const deleteContent = createAsyncThunk(
 );
   
 export const getContents = createAsyncThunk(
-  '/content',
+  '/contents/all',
   async (_, { rejectWithValue }) => {
     try {
       const { data } = await Axios.get('/contents', { withCredentials: true });

@@ -1,7 +1,7 @@
 import os
 from langchain_openai import AzureChatOpenAI, AzureOpenAI
-from langchain_community.tools import GoogleSearchResults
-from langchain_community.tools import GoogleSearchResults
+from langchain_community.tools import DuckDuckGoSearchResults
+
 
 def init_azure_openai():
     return AzureChatOpenAI(
@@ -23,4 +23,4 @@ def init_dalle_client():
 
 dalle = init_dalle_client()
 
-search_tool = GoogleSearchResults()
+search_tool = DuckDuckGoSearchResults()
