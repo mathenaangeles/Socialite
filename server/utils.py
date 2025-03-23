@@ -51,7 +51,7 @@ def delete_image_from_azure(image_url):
         if not image_url.startswith(base_url):
             print("Invalid image URL format")
             return None
-        blob_name = image_url.replace(base_url, "")
+        blob_name = image_url[len(base_url):] 
         blob_client = blob_service_client.get_blob_client(container=AZURE_CONTAINER_NAME, blob=blob_name)
         blob_client.delete_blob()
         print(f"Deleted: {blob_name}")

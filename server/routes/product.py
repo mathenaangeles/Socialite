@@ -64,12 +64,9 @@ def product(id):
         product.category = data.get('category', product.category)
 
         new_images = request.files.getlist('images')
-        existing_images = request.form.getlist('existing_images') 
-        removed_images = set(product.images) - set(existing_images)
-        for img in removed_images:
+        for img in product.images:
             delete_image_from_azure(img)
-        uploaded_images = [upload_image_to_azure(img, "products") for img in new_images if img]
-        product.images = existing_images + uploaded_images if existing_images else uploaded_images
+        product.images = [upload_image_to_azure(img, "products") for img in new_images if img]
 
         db.session.commit()
 

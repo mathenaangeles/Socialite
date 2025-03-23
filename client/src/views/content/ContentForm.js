@@ -16,7 +16,22 @@ const ContentForm = () => {
   const { content, loading, error } = useSelector((state) => state.content);
 
   const [title, setTitle] = useState("");
+  const [channel, setChannel] = useState("");
+  const [type, setType] = useState("");
+  const [objective, setObjective] = useState("");
+  const [audience, setAudience] = useState("");
+  const [status, setStatus] = useState("");
+  const [link, setLink] = useState("");
+  const [text, setText] = useState("");
   const [media, setMedia] = useState([]);
+  const [tags, setTags] = useState([]);
+  const [likes, setLikes] = useState(0);
+  const [shares, setShares] = useState(0);
+  const [clicks, setClicks] = useState(0);
+  const [impressions, setImpressions] = useState(0);
+  const [scheduledAt, setScheduledAt] = useState(new Date());
+  const [publishedAt, setPublishedAt] = useState(new Date());
+  const [mode, setMode] = useState("");
 
   const handleMediaUpload = (e) => {
     const files = Array.from(e.target.files);

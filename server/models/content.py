@@ -27,7 +27,6 @@ class Content(db.Model, SerializerMixin):
     likes = db.Column(db.Integer, default=0)
     shares = db.Column(db.Integer, default=0)
     clicks = db.Column(db.Integer, default=0)
-    comments = db.Column(db.Integer, default=0)
     impressions = db.Column(db.Integer, default=0)
 
     scheduled_at = db.Column(db.DateTime, nullable=True)

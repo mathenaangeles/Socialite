@@ -18,7 +18,6 @@ class MarketResearch(BaseModel):
     research: str = Field(description="Additional research insights to guide content creation")
 
 class GeneratedContent(BaseModel):
-    title: str = Field(None, description="Headline or title optimized for engagement and SEO")
     text: str = Field(description="Main body text content or caption")
     tags: List[str] = Field(default_factory=list, description="Hashtags and keywords")
 
@@ -28,7 +27,7 @@ class ContentEvaluation(BaseModel):
     recommendations: List[str] = Field(default_factory=list, description="Specific recommendations to improve content")
 
 class ContentState:
-    def __init__(self, title, channel, type, objective=None, audience=None, product=None, instructions=None, style=None, dimensions=None, key_elements=None, number_of_images=1):
+    def __init__(self, title, channel, type, objective=None, audience=None, product=None, instructions=None, style=None, dimensions=None, key_elements=None, number_of_images=1, text="", tags=[], media=[]):
         self.title = title
         self.channel = channel
         self.type = type
@@ -44,13 +43,13 @@ class ContentState:
 
         self.market_research = {}
 
-        self.generated_text = ""
-        self.generated_tags = []
-        self.generated_media = []
+        self.generated_text = text
+        self.generated_tags = tags
+        self.generated_media = media
 
-        self.score = 0
-        self.analysis = ""
-        self.recommendations = []
+        self.generated_score = 0
+        self.generated_analysis = ""
+        self.generated_recommendations = []
 
     def to_dict(self):
         return {k: v for k, v in self.__dict__.items()}
@@ -252,9 +251,9 @@ def evaluate_content(state: ContentState):
     
     try:
         response = evaluate_content_llm.invoke(evaluation_content_prompt.format_messages())
-        state.score = response.score
-        state.analysis = response.analysis
-        state.recommendations = response.recommendations
+        state.generated_score = response.score
+        state.generated_analysis = response.analysis
+        state.generated_recommendations = response.recommendations
     except Exception as e:
         print(f"ERROR: {e}")
 
@@ -282,12 +281,10 @@ def init_workflow(mode="full"):
         workflow.add_edge("generate_media", "evaluate_content")
 
     if mode=="evaluation_only":
-        workflow.set_entry_point("market_research")
-    else:
         workflow.set_entry_point("evaluate_content")
+    else:
+        workflow.set_entry_point("market_research")
 
     workflow.set_termination_point("evaluate_content", END)
     
     return workflow.compile()
-
-content_graph_executor = init_workflow()
