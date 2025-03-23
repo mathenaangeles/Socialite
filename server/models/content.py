@@ -15,10 +15,14 @@ class Content(db.Model, SerializerMixin):
 
     status = db.Column(db.String(250), nullable=False)
     
-    link = db.Column(db.String(500), nullable=True,)
+    link = db.Column(db.String(500), nullable=True)
     text = db.Column(db.Text, nullable=True)
     media = db.Column(JSON, nullable=True, default=list)
     tags = db.Column(JSON, nullable=True, default=list)
+
+    score = db.Column(db.Integer, default=0, nullable=True)
+    analysis = db.Column(db.Text, nullable=True)
+    recommendations = db.Column(JSON, nullable=True, default=list)
 
     likes = db.Column(db.Integer, default=0)
     shares = db.Column(db.Integer, default=0)

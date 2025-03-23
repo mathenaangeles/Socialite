@@ -12,9 +12,10 @@ def create_content():
     title = data.get('title')
     channel = data.get('channel')
     type = data.get('type')
-    status = data.get('status', 'Draft')
     objective = data.get('objective')
     audience = data.get('audience')
+    status = data.get('status', 'Draft')
+
     instructions = data.get('instructions')
 
     user = request.user

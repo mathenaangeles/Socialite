@@ -59,3 +59,4 @@ def delete_image_from_azure(image_url):
     except Exception as e:
         print(f"Error deleting image from Azure: {e}")
         return False
+
