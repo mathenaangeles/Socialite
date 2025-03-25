@@ -1,5 +1,8 @@
 import os
 import json
+import time
+import random
+import traceback
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional, Union
@@ -21,7 +24,6 @@ class MarketResearch(BaseModel):
     keywords:  List[str] = Field(default_factory=list, description="High-value SEO keywords with search volume data")
     demographic: str = Field(description="Detailed profile of target demographic including preferences, behaviors, and pain points")
     competition: str = Field(description="Analysis of competitive landscape with content strategy insights")
-    research: str = Field(description="Additional research insights to guide content creation")
 
 class GeneratedContent(BaseModel):
     text: str = Field(description="Main body text content or caption")
@@ -94,162 +96,161 @@ def init_research_agent():
         )
     return _research_agent
 
-def conduct_market_research(state: Dict[str, Any]):
-    """Research current trends and audience preferences for the content"""
-    if isinstance(state, ContentState):
-        state = state.model_dump()
-
-    content_state = ContentState(**state)
-
-    research_agent = init_research_agent()
-
-    research_prompt = f"""
-    Research best practices for {content_state.type} post on {content_state.channel}. Give 
-    your response in less than 100 characters.
+def retry_with_backoff(func, *args, max_retries=3, base_delay=2, **kwargs):
     """
+    Implement retry logic with exponential backoff
     
-    # research_prompt = f"""
-    # Conduct market research for a {content_state.type} post on {content_state.channel} with the title {content_state.title}.
+    :param func: Function to retry
+    :param max_retries: Maximum number of retry attempts
+    :param base_delay: Base delay between retries
+    :return: Result of the function or raise final exception
+    """
+    retries = 0
+    while retries < max_retries:
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            # Calculate exponential backoff with jitter
+            delay = (base_delay ** retries) + random.uniform(0, 1)
+            
+            print(f"Attempt {retries + 1} failed. Error: {str(e)}")
+            print(f"Waiting {delay:.2f} seconds before retrying.")
+            
+            # Optional: Log the full traceback for debugging
+            print(traceback.format_exc())
+            
+            time.sleep(delay)
+            retries += 1
+    
+    # If all retries fail, raise the last exception
+    raise Exception(f"Max retries ({max_retries}) exceeded. Last error: {str(e)}")
 
-    # {f"""Product:
-    #  {content_state.product}
-    #  """ if content_state.product else ""}
+def conduct_market_research(state: Dict[str, Any]):
+    """Research current trends and audience preferences for the content with retry logic"""
+    def _conduct_research(state):
+        if isinstance(state, ContentState):
+            state = state.model_dump()
 
-    # Objective: 
-    # {content_state.objective if content_state.objective else """Create content that will drive positive engagement."""}
+        content_state = ContentState(**state)
+
+        research_agent = init_research_agent()
+
+        research_prompt = f"""
+        Identify trends, demographics, and competitive landscape for {content_state.type} post on {content_state.channel}. Give 
+        your response in less than 100 characters.
+        """
+
+        research_result =  research_agent.invoke({
+            "input": research_prompt,
+            "chat_history": [],
+            "agent_scratchpad": []
+        })
         
-    # Target Audience: 
-    # {content_state.audience if content_state.audience else "General Audience"}
-
-    # Consider the following when key areas to research:
-    # 1. Current trending topics and conversations related to this subject on {content_state.channel}
-    # 2. Detailed {content_state.audience if content_state.audience else "target audience"} demographics, psycho-graphics, pain points, and content preferences on {content_state.channel}
-    # 3. Top-performing content formats/content and best practices for {content_state.type} posts on {content_state.channel}
-    # 4. SEO and algorithm considerations specific to {content_state.channel}
-    # 5. Competitive analysis of similar content from leading brands/creators
-
-    # Provide specific, actionable insights that directly inform the content creation process.
-    # """
-
-    research_result =  research_agent.invoke({
-        "input": research_prompt,
-        "chat_history": [],
-        "agent_scratchpad": []
-    })
-    
-    research = research_result.get('output', '')
-    
-    conduct_market_research_llm = llm.with_structured_output(MarketResearch)
-
-    conduct_market_research_prompt = ChatPromptTemplate.from_messages([
-    ("system", """You are an expert marketing analyst who extracts and organizes actionable insights
-    from research data to facilitate strategic content creation.
-    
-    Summarize the provided research and structure it into clear categories that will directly
-    guide content development decisions in less than 100 characters. Focus on specificity and actionability."""),
-    ("human", f"Structure the following research into a comprehensive market analysis:\n\n{research['output']}")
-])
-
-    # conduct_market_research_prompt = ChatPromptTemplate.from_messages([
-    #     ("system", """You are an expert marketing analyst who extracts and organizes actionable insights
-    #     from research data to facilitate strategic content creation.
+        research = research_result.get('output', '')
         
-    #     Analyze the provided research and structure it into clear categories that will directly
-    #     guide content development decisions. Focus on specificity and actionability."""),
-    #     ("human", f"Structure the following research into a comprehensive market analysis:\n\n{research['output']}")
-    # ])
+        conduct_market_research_llm = llm.with_structured_output(MarketResearch)
 
-    try:
+        conduct_market_research_prompt = ChatPromptTemplate.from_messages([
+        ("system", """You are an expert marketing analyst who extracts and organizes actionable insights
+        from research data to facilitate strategic content creation.
+        
+        Summarize the provided research and structure it into clear categories that will directly
+        guide content development decisions in less than 100 characters. Focus on specificity and actionability."""),
+        ("human", f"Structure the following research into a comprehensive market analysis:\n\n{research['output']}")
+        ])
+
         response = conduct_market_research_llm.invoke(conduct_market_research_prompt.format_messages())
         content_state.market_research = response.model_dump()
-    except Exception as e:
-        print(f"ERROR: {e}")    
-    return content_state.model_dump()
-    
+        
+        return content_state.model_dump()
+
+    return retry_with_backoff(_conduct_research, state)
+
 def generate_content(state: Dict[str, Any]):
-    """Generate text content based on market research"""
-    if isinstance(state, ContentState):
-        state = state.model_dump()
-    
-    content_state = ContentState(**state)
-
-    generate_content_llm = llm.with_structured_output(GeneratedContent)
-
-    generate_content_prompt = ChatPromptTemplate.from_messages([
-        ("system", f"""
-        You are an expert content creator with years of experience creating viral 
-        marketing content. 
-
-        Create comprehensive content following industry best practices for {content_state.type} on 
-        {content_state.channel}, incorporating SEO optimization, engagement triggers, and platform-specific 
-        formatting."""),
-        ("human", f"""Create optimized {content_state.type} content for {content_state.channel} based on
+    """Generate text content based on market research with retry logic"""
+    def _generate_content(state):
+        if isinstance(state, ContentState):
+            state = state.model_dump()
         
-        {f"""Product:
-        {content_state.product}.""" if content_state.product else ""}
+        content_state = ContentState(**state)
 
-        Title: {content_state.title}
+        generate_content_llm = llm.with_structured_output(GeneratedContent)
 
-        Channel: {content_state.channel}
-        
-        Content Type: {content_state.type}
-        
-        Objective: 
-        {content_state.objective if content_state.objective else """Create content that will drive positive engagement and conversion."""}
-        
-        Target Audience: 
-        {content_state.audience if content_state.audience else "General Audience"}
+        generate_content_prompt = ChatPromptTemplate.from_messages([
+            ("system", f"""
+            You are an expert content creator with years of experience creating viral 
+            marketing content. 
 
-        Market Research: 
-        {json.dumps(content_state.market_research, indent=2) if content_state.market_research else "There is no market research available."}
-        
-        Additional Instructions:
-        {content_state.instructions if content_state.instructions else """Follow best practices for this channel and content type. Make sure"
-        it appeals to the target audience to maximize engagement."""}
-        
-        """)
-    ])
+            Create comprehensive content following industry best practices for {content_state.type} on 
+            {content_state.channel}, incorporating SEO optimization, engagement triggers, and platform-specific 
+            formatting."""),
+            ("human", f"""Create optimized {content_state.type} content for {content_state.channel} based on
+            
+            {f"""Product:
+            {content_state.product}.""" if content_state.product else ""}
 
-    try:
+            Title: {content_state.title}
+
+            Channel: {content_state.channel}
+            
+            Content Type: {content_state.type}
+            
+            Objective: 
+            {content_state.objective if content_state.objective else """Create content that will drive positive engagement and conversion."""}
+            
+            Target Audience: 
+            {content_state.audience if content_state.audience else "General Audience"}
+
+            Market Research: 
+            {json.dumps(content_state.market_research, indent=2) if content_state.market_research else "There is no market research available."}
+            
+            Additional Instructions:
+            {content_state.instructions if content_state.instructions else """Follow best practices for this channel and content type. Make sure"
+            it appeals to the target audience to maximize engagement."""}
+            
+            """)
+        ])
+
         response = generate_content_llm.invoke(generate_content_prompt.format_messages())
         content_state.generated_text = response.text
         content_state.generated_tags = response.tags
-    except Exception as e:
-        print(f"ERROR: {e}")    
-    return content_state.model_dump()
+        
+        return content_state.model_dump()
+
+    return retry_with_backoff(_generate_content, state)
 
 def generate_media(state: Dict[str, Any]):  
-    """Generate image content based on market research"""
-    if isinstance(state, ContentState):
-        state = state.model_dump()
-    
-    content_state = ContentState(**state)
-
-    generate_media_prompt = f"""
-    Create a {content_state.style} image to accompany the {content_state.type} post on {content_state.channel}. 
-
-    {f"""Make sure you include the following key elements:
-    {', '.join(content_state.key_elements)}""" if content_state.key_elements else ""}
-
-    Use the following details to help you craft the perfect image.
-
-    {f"""Product:
-        {content_state.product}.""" if content_state.product else ""}
-
-        Title: {content_state.title}
-
-        Channel: {content_state.channel}
+    """Generate image content with retry logic"""
+    def _generate_media(state):
+        if isinstance(state, ContentState):
+            state = state.model_dump()
         
-        Content Type: {content_state.type}
-        
-        Target Audience: 
-        {content_state.audience if content_state.audience else "General Audience"}
+        content_state = ContentState(**state)
 
-        Market Research: 
-        {json.dumps(content_state.market_research, indent=2) if content_state.market_research else "There is no market research available."}
-    """
-    
-    try:
+        generate_media_prompt = f"""
+        Create a {content_state.style} image to accompany the {content_state.type} post on {content_state.channel}. 
+
+        {f"""Make sure you include the following key elements:
+        {', '.join(content_state.key_elements)}""" if content_state.key_elements else ""}
+
+        Use the following details to help you craft the perfect image.
+
+        {f"""Product:
+            {content_state.product}.""" if content_state.product else ""}
+
+            Title: {content_state.title}
+
+            Channel: {content_state.channel}
+            
+            Content Type: {content_state.type}
+            
+            Target Audience: 
+            {content_state.audience if content_state.audience else "General Audience"}
+
+            Market Research: 
+            {json.dumps(content_state.market_research, indent=2) if content_state.market_research else "There is no market research available."}
+        """
+        
         response = dalle.images.generate(
             model=os.getenv("AZURE_DALLE_DEPLOYMENT_NAME"),
             prompt=generate_media_prompt,
@@ -258,95 +259,55 @@ def generate_media(state: Dict[str, Any]):
         )
         for med in response.data[0]:
             content_state.generated_media.append(med.url)
-    except Exception as e:
-        print(f"ERROR: {e}") 
-    return content_state.model_dump()
-    
+        
+        return content_state.model_dump()
+
+    return retry_with_backoff(_generate_media, state)
+
 def evaluate_content(state: Dict[str, Any]):
-    """Evaluate the generated content against industry benchmarks and objectives"""
-    if isinstance(state, ContentState):
-        state = state.model_dump()
+    """Evaluate the generated content with retry logic"""
+    def _evaluate_content(state):
+        if isinstance(state, ContentState):
+            state = state.model_dump()
 
-    content_state = ContentState(**state)
+        content_state = ContentState(**state)
 
-    evaluate_content_llm = llm.with_structured_output(ContentEvaluation)
-    evaluation_content_prompt = ChatPromptTemplate.from_messages([
-        ("system", """
-        You are a senior content strategist and marketing analyst specializing in performance evaluation.
-        Your expertise includes data-driven content assessment, competitive benchmarking, and optimization strategy.
-         """),
-        ("human", f"""Evaluate the content below:
-         
-        CONTENT DETAILS:
+        evaluate_content_llm = llm.with_structured_output(ContentEvaluation)
+        evaluation_content_prompt = ChatPromptTemplate.from_messages([
+            ("system", """
+            You are a senior content strategist and marketing analyst specializing in performance evaluation.
+            Your expertise includes data-driven content assessment, competitive benchmarking, and optimization strategy.
+             """),
+            ("human", f"""Evaluate the content below:
+             
+            CONTENT DETAILS:
+            
+            Title: {content_state.title}
+            Channel: {content_state.channel}
+            Content Type: {content_state.type}
+            Text: {content_state.generated_text}
+            Tags: {', '.join(content_state.generated_tags) if content_state.generated_tags else "N/A"}
+            
+            CONTEXT:
+            
+            Objective: 
+            {content_state.objective if content_state.objective else """Create content that will drive positive engagement and conversion."""}
+            
+            Target Audience: 
+            {content_state.audience if content_state.audience else "General Audience"}
+            
+            Provide an overall score (1-10) and 3 specific recommendations to improve it, if any.
+            """)
+        ])
         
-        Title: {content_state.title}
-        Channel: {content_state.channel}
-        Content Type: {content_state.type}
-        Text: {content_state.generated_text}
-        Tags: {', '.join(content_state.generated_tags) if content_state.generated_tags else "N/A"}
-        
-        CONTEXT:
-        
-        Objective: 
-        {content_state.objective if content_state.objective else """Create content that will drive positive engagement and conversion."""}
-        
-        Target Audience: 
-        {content_state.audience if content_state.audience else "General Audience"}
-        
-        Provide an overall score (1-10) and 3 specific recommendations to improve it, if any.
-        """)
-    ])
-
-    # evaluation_content_prompt = ChatPromptTemplate.from_messages([
-    #     ("system", """
-    #     You are a senior content strategist and marketing analyst specializing in performance evaluation.
-    #     Your expertise includes data-driven content assessment, competitive benchmarking, and optimization strategy.
-        
-    #     Evaluate the provided content objectively against industry standards, platform-specific best practices,
-    #     stated objectives, and competitive benchmarks. Your analysis should be thorough, balanced, and actionable."""),
-    #     ("human", f"""Evaluate the content below:
-         
-    #     CONTENT DETAILS:
-        
-    #     Title: {content_state.title}
-    #     Channel: {content_state.channel}
-    #     Content Type: {content_state.type}
-    #     Text: {content_state.generated_text}
-    #     Tags: {', '.join(content_state.generated_tags) if content_state.generated_tags else "N/A"}
-        
-    #     EVALUATION CRITERIA:
-        
-    #     1. Strategic Alignment: How well does the content fulfill the stated objective?
-    #     2. SEO Optimization: How well does the content incorporate keywords and follow SEO best practices?
-    #     3. Engagement Potential: How likely is this content to generate likes, comments, shares, and clicks?
-    #     4. Audience Resonance: How effectively does the content address audience needs and preferences?
-    #     4. Technical Execution: How appropriate is the length, format, and structure for {content_state.channel}?
-        
-    #     CONTEXT:
-        
-    #     Objective: 
-    #     {content_state.objective if content_state.objective else """Create content that will drive positive engagement and conversion."""}
-        
-    #     Target Audience: 
-    #     {content_state.audience if content_state.audience else "General Audience"}
-
-    #     Market Research: 
-    #     {json.dumps(content_state.market_research, indent=2) if content_state.market_research else "There is no market research available."}
-        
-    #     Provide a comprehensive evaluation with scores for each criterion (1-10), overall score and specific recommendations
-    #     to improve it, if any.
-    #     """)
-    # ])
-    
-    try:
         response = evaluate_content_llm.invoke(evaluation_content_prompt.format_messages())
         content_state.generated_score = response.score
         content_state.generated_analysis = response.analysis
         content_state.generated_recommendations = response.recommendations
-    except Exception as e:
-        print(f"ERROR: {e}")
 
-    return content_state.model_dump()
+        return content_state.model_dump()
+
+    return retry_with_backoff(_evaluate_content, state)
 
 def init_workflow(mode="full"):
     workflow = StateGraph(dict)
