@@ -8,7 +8,6 @@ from utils import auth_required, upload_image_to_azure, delete_image_from_azure
 @auth_required
 def create_product():
     data = request.form
-    print(data)
     name = data.get('name')
     price = data.get('price')
     currency = data.get('currency', 'USD')

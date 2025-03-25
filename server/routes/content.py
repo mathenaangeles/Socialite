@@ -26,6 +26,8 @@ def create_content():
     key_elements = data.get('key_elements', None)
     number_of_images = data.get('number_of_images', 1)
 
+    mode = data.get('mode', '')
+
     product_id = data.get('productId', None)
     if product_id:
         product = Product.query.filter_by(id=product_id).first()
@@ -48,7 +50,7 @@ def create_content():
         key_elements=key_elements, 
         number_of_images=number_of_images)
     
-    workflow = init_workflow("full")
+    workflow = init_workflow(mode)
     final_state = workflow.invoke(state)
     
     media_files = final_state.generated_media

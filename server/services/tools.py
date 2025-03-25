@@ -1,7 +1,10 @@
 import os
-from langchain_openai import AzureChatOpenAI, AzureOpenAI
+from dotenv import load_dotenv
+from openai import AzureOpenAI
+from langchain_openai import AzureChatOpenAI
 from langchain_community.tools import DuckDuckGoSearchResults
 
+load_dotenv()
 
 def init_azure_openai():
     return AzureChatOpenAI(
@@ -13,6 +16,13 @@ def init_azure_openai():
 
 llm = init_azure_openai()
 
+# try:
+#     response = llm.invoke("Hi.")
+#     print("Azure OpenAI Chat Model is working...")
+#     print(response)
+# except Exception as e:
+#     print(f"ERROR: {e}")
+
 def init_dalle_client():
     return AzureOpenAI(
         api_key=os.getenv("AZURE_OPENAI_API_KEY"),
@@ -22,5 +32,17 @@ def init_dalle_client():
     )
 
 dalle = init_dalle_client()
+
+# try:
+#     response = dalle.images.generate(
+#         model=os.getenv("AZURE_DALLE_DEPLOYMENT_NAME"),
+#         prompt="a being named Jimmy",
+#         n=1
+#     )
+#     image_url = response.data[0].url
+#     print("Azure DALLE Model is working...")
+#     print(image_url)
+# except Exception as e:
+#     print(f"ERROR: {e}")
 
 search_tool = DuckDuckGoSearchResults()

@@ -11,7 +11,7 @@
 4. Create a `.env` file in the `server` directory. Add the following:
 ```
 FLASK_APP=app.py
-DEBUG=True
+FLASK_DEBUG=1
 FLASK_ENV=development
 SECRET_KEY=<INSERT_SECRET_KEY_HERE>
 SQLALCHEMY_TRACK_MODIFICATIONS=False
