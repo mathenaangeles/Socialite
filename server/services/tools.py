@@ -17,7 +17,7 @@ def init_azure_openai():
 llm = init_azure_openai()
 
 # try:
-#     response = llm.invoke("Hi.")
+#     response = llm.invoke("Tell me a joke.")
 #     print("Azure OpenAI Chat Model is working...")
 #     print(response)
 # except Exception as e:
@@ -36,7 +36,7 @@ dalle = init_dalle_client()
 # try:
 #     response = dalle.images.generate(
 #         model=os.getenv("AZURE_DALLE_DEPLOYMENT_NAME"),
-#         prompt="a being named Jimmy",
+#         prompt="the city skyline",
 #         n=1
 #     )
 #     image_url = response.data[0].url

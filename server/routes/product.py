@@ -1,6 +1,6 @@
+import json
 from app import app, db
 from flask import request, jsonify
-
 from models.product import Product
 from utils import auth_required, upload_image_to_azure, delete_image_from_azure
 
@@ -18,7 +18,7 @@ def create_product():
     if not user.organization_id:
         return jsonify({"error": "User is not part of any organization."}), 403
 
-    image_files = request.files.getlist('images')
+    image_files = request.files.getlist('newImages')
     uploaded_images = [upload_image_to_azure(img, "products") for img in image_files if img]
 
     new_product = Product(
@@ -62,10 +62,27 @@ def product(id):
         product.description = data.get('description', product.description)
         product.category = data.get('category', product.category)
 
-        new_images = request.files.getlist('images')
-        for img in product.images:
+        deleted_images_str = request.form.get('deletedImages')
+        if deleted_images_str:
+            try:
+                deleted_images_list = json.loads(deleted_images_str)
+                if isinstance(deleted_images_list, str):
+                    deleted_images = json.loads(deleted_images_list)
+                else:
+                    deleted_images = deleted_images_list
+            except json.JSONDecodeError:
+                return jsonify({"ERROR": "Invalid image URL format"}), 400
+        else:
+            deleted_images = []
+        product.images = [img for img in product.images if img not in deleted_images]
+        for img in deleted_images:
             delete_image_from_azure(img)
-        product.images = [upload_image_to_azure(img, "products") for img in new_images if img]
+
+        db.session.commit()
+
+        new_images = request.files.getlist('newImages')
+        uploaded_images = [upload_image_to_azure(img, "products") for img in new_images if img]
+        product.images.extend(uploaded_images)
 
         db.session.commit()
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { Close } from "@mui/icons-material";
+import dayjs from "dayjs";
 import { IconButton, Card, Divider, Alert, LinearProgress, TextField, Button, Container, Typography, Box, MenuItem, Select, FormControl, InputLabel, Grid, Chip, FormHelperText, Tab, Tabs, Paper} from "@mui/material";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 
@@ -30,7 +31,9 @@ const ContentForm = () => {
   const [status, setStatus] = useState("Draft");
   const [link, setLink] = useState("");
   const [text, setText] = useState("");
-  const [media, setMedia] = useState([]);
+  const [newMedia, setNewMedia] = useState([]); 
+  const [existingMedia, setExistingMedia] = useState([]);
+  const [deletedMedia, setDeletedMedia] = useState([]); 
   const [mediaPreview, setMediaPreview] = useState([]);
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState([]);
@@ -61,6 +64,35 @@ const ContentForm = () => {
     }
   }, [id, dispatch]);
 
+  const parseTags = () => {
+    if (!tags) return []; 
+  
+    if (Array.isArray(tags)) return tags; 
+  
+    if (typeof tags === "string") {
+      try {
+        let parsedTags = JSON.parse(tags);
+  
+        if (typeof parsedTags === "string") {
+          parsedTags = JSON.parse(parsedTags); 
+        }
+  
+        if (Array.isArray(parsedTags)) return parsedTags;
+  
+        return parsedTags ? [parsedTags] : []; 
+      } catch (error) {
+        return [tags]; 
+      }
+    }
+  
+    if (typeof tags === "object") {
+      return Object.values(tags);
+    }
+  
+    return [tags];
+  };
+  
+
   useEffect(() => {
     if (id && content) {
       setTitle(content.title || "");
@@ -71,19 +103,21 @@ const ContentForm = () => {
       setStatus(content.status || "Draft");
       setLink(content.link || "");
       setText(content.text || "");
-      setTags(content.tags || []);
+      if (content.tags) {
+        const parsedTags = parseTags();
+        setTags(parsedTags);
+      }
+      if (content.media && content.media.length > 0) {
+        setExistingMedia(content.media);
+        setMediaPreview(content.media.map(url => ({ url })));
+      }
       setLikes(content.likes || 0);
       setShares(content.shares || 0);
       setClicks(content.clicks || 0);
       setImpressions(content.impressions || 0);
-      setScheduledAt(content.scheduled_at ? new Date(content.scheduled_at) : null);
-      setPublishedAt(content.published_at ? new Date(content.published_at) : null);
+      setScheduledAt(content.scheduled_at ? dayjs(content.scheduled_at) : null);
+      setPublishedAt(content.published_at ? dayjs(content.published_at) : null);
       setProductId(content.product_id || "");
-      
-      if (content.media && content.media.length > 0) {
-        setMediaPreview(content.media.map(url => ({ url })));
-      }
-      
       setScore(content.score || 0);
       setAnalysis(content.analysis || "");
       setRecommendations(content.recommendations || []);
@@ -92,7 +126,7 @@ const ContentForm = () => {
 
   const handleMediaUpload = (e) => {
     const files = Array.from(e.target.files);
-    setMedia([...media, ...files]);
+    setNewMedia([...newMedia, ...files]);
     
     const newPreviews = files.map(file => ({
       url: URL.createObjectURL(file),
@@ -102,10 +136,21 @@ const ContentForm = () => {
   };
 
   const handleRemoveMedia = (index) => {
-    const updatedMedia = [...media];
-    updatedMedia.splice(index, 1);
-    setMedia(updatedMedia);
-    
+    if (mediaPreview[index].url.startsWith('https://')) {
+      setDeletedMedia([...deletedMedia, mediaPreview[index].url]);
+      setExistingMedia(existingMedia.filter(media => media !== mediaPreview[index].url));
+    } 
+    else {
+      const newMediaIndex = mediaPreview[index].file ? 
+        newMedia.findIndex(m => m === mediaPreview[index].file) : 
+        -1;
+      
+      if (newMediaIndex !== -1) {
+        const updatedNewMedia = [...newMedia];
+        updatedNewMedia.splice(newMediaIndex, 1);
+        setNewMedia(updatedNewMedia);
+      }
+    }    
     const updatedPreviews = [...mediaPreview];
     updatedPreviews.splice(index, 1);
     setMediaPreview(updatedPreviews);
@@ -168,9 +213,13 @@ const ContentForm = () => {
       contentData.append("number_of_images", numberOfImages);
     }
 
-    media.forEach((med) => {
-      contentData.append("media", med);
+    newMedia.forEach((med) => {
+      contentData.append("newMedia", med);
     });
+  
+    if (deletedMedia.length > 0) {
+      contentData.append("deletedMedia", JSON.stringify(deletedMedia));
+    }
 
     if (id) {
       await dispatch(updateContent({ id, contentData }));
@@ -352,14 +401,14 @@ const ContentForm = () => {
                       >
                         <MenuItem value="">None</MenuItem>
                         <MenuItem value="full">All (Text & Images)</MenuItem>
-                        <MenuItem value="content_only">Text Only</MenuItem>
+                        <MenuItem value="text_only">Text Only</MenuItem>
                         <MenuItem value="media_only">Images Only</MenuItem>
                       </Select>
-                      <FormHelperText>Select AI generation mode</FormHelperText>
+                      <FormHelperText sx={{ textAlign: "left", ml: 0 }}>If you do not want to use generative AI, leave this as None.</FormHelperText>
                     </FormControl>
                   </Grid>
 
-                  {(mode === "full" || mode === "content_only") &&
+                  {(mode === "full" || mode === "text_only") &&
 
                   (<Grid item xs={12}>
                     <TextField
@@ -371,7 +420,7 @@ const ContentForm = () => {
                       multiline
                       rows={3}
                       onChange={(e) => setInstructions(e.target.value)}
-                      helperText="Provide additional instructions to guide the AI content generation procss"
+                      helperText="Provide additional instructions to guide the AI content generation process."
                       FormHelperTextProps={{ sx: { textAlign: "left", ml: 0 } }} 
                     />
                   </Grid>)}
@@ -386,7 +435,7 @@ const ContentForm = () => {
                           margin="normal"
                           variant="outlined"
                           onChange={(e) => setStyle(e.target.value)}
-                          helperText="Describe the style of the image (e.g., minimalist, vibrant, vintage)"
+                          helperText="Describe the style of the image (e.g., minimalist, vibrant, vintage)."
                           FormHelperTextProps={{ sx: { textAlign: "left", ml: 0 } }} 
                         />
                       </Grid>
@@ -401,7 +450,7 @@ const ContentForm = () => {
                           multiline
                           rows={2}
                           onChange={(e) => setKeyElements(e.target.value)}
-                          helperText="Specify key elements to include in generated images (comma-separated)"
+                          helperText="Specify key elements to include in generated images."
                           FormHelperTextProps={{ sx: { textAlign: "left", ml: 0 } }} 
                         />
                       </Grid>
@@ -462,11 +511,12 @@ const ContentForm = () => {
                       variant="outlined"
                       onChange={(e) => setTagInput(e.target.value)}
                       onKeyDown={handleAddTag}
-                      helperText="Press Enter to add a tag"
+                      helperText="Press Enter to add a tag."
                       FormHelperTextProps={{ sx: { textAlign: "left", ml: 0 } }} 
                     />
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-                      {tags.map((tag, index) => (
+                    {Array.isArray(tags) && tags.length > 0 ? (
+                      tags.map((tag, index) => (
                         <Chip
                           key={index}
                           label={tag}
@@ -474,15 +524,20 @@ const ContentForm = () => {
                           color="secondary"
                           variant="outlined"
                         />
-                      ))}
-                    </Box>
+                      ))
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        No tags available
+                      </Typography>
+                    )}
+                  </Box>
                   </Grid>
                   <Grid item xs={12}>
                     <Button
                       variant="contained"
                       component="label"
                       color="primary"
-                      sx={{ mb: 2 }}
+                      sx={{ my: 2 }}
                     >
                       Upload Media
                       <input
@@ -497,31 +552,44 @@ const ContentForm = () => {
 
                   <Grid item xs={12}>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                      {mediaPreview.map((item, index) => (
-                        <Box 
-                          key={index} 
-                          sx={{ 
-                            position: 'relative', 
-                            width: 150, 
-                            height: 150, 
-                            border: '1px solid #ddd',
-                            borderRadius: 1
+                    {mediaPreview.map((item, index) => (
+                      <Box 
+                        key={index} 
+                        sx={{ 
+                          position: 'relative', 
+                          display: 'inline-block',
+                          width: 100,
+                          height: 100
+                        }}
+                      >
+                        <img 
+                          src={item.url} 
+                          alt={`Media ${index}`} 
+                          style={{ 
+                            width: 100, 
+                            height: 100, 
+                            borderRadius: 8, 
+                            objectFit: 'cover' 
                           }}
+                        />
+                        <IconButton
+                          size="small"
+                          sx={{
+                            position: 'absolute',
+                            top: 0,
+                            right: 0,
+                            transform: 'translate(50%, -50%)',
+                            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                            color: 'white',
+                            padding: '4px',
+                            '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.8)' }
+                          }}
+                          onClick={() => handleRemoveMedia(index)}
                         >
-                          <img 
-                            src={item.url} 
-                            alt={`Media ${index}`} 
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          />
-                          <IconButton
-                            size="small"
-                            sx={{ position: 'absolute', top: 5, right: 5, bgcolor: 'rgba(255,255,255,0.7)' }}
-                            onClick={() => handleRemoveMedia(index)}
-                          >
-                            <Close fontSize="small" />
-                          </IconButton>
-                        </Box>
-                      ))}
+                          <Close fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    ))}
                     </Box>
                   </Grid>
                 </Grid>
@@ -529,9 +597,25 @@ const ContentForm = () => {
 
               {activeTab === 3 && id && (
                 <Grid container spacing={2}>
-                  <Grid item xs={12} md={6}>
+                  <Grid item xs={12}>
                     <Paper elevation={2} sx={{ p: 2, mb: 2 }}>
-                      <Typography variant="subtitle1" fontWeight="bold">Performance Metrics</Typography>
+                      <Typography variant="subtitle1" fontWeight="bold">
+                        AI Content Score: {score}/10
+                      </Typography>
+                      <Box sx={{ width: '100%', mt: 1 }}>
+                        <LinearProgress 
+                          variant="determinate" 
+                          value={score * 10} 
+                          color={score < 5 ? "error" : score < 7 ? "warning" : "success"}
+                          sx={{ height: 10, borderRadius: 5 }}
+                        />
+                      </Box>
+                    </Paper>
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <Paper elevation={2} sx={{ p: 2, mb: 2 }}>
+                      <Typography variant="h6" fontWeight="bold">Performance Metrics</Typography>
                       <Divider sx={{ my: 1 }} />
                       <Grid container spacing={2}>
                         <Grid item xs={6}>
@@ -582,25 +666,9 @@ const ContentForm = () => {
                     </Paper>
                   </Grid>
 
-                  <Grid item xs={12} md={6}>
-                    <Paper elevation={2} sx={{ p: 2, mb: 2 }}>
-                      <Typography variant="subtitle1" fontWeight="bold">
-                        AI Content Score: {score}/10
-                      </Typography>
-                      <Box sx={{ width: '100%', mt: 1 }}>
-                        <LinearProgress 
-                          variant="determinate" 
-                          value={score * 10} 
-                          color={score < 5 ? "error" : score < 7 ? "warning" : "success"}
-                          sx={{ height: 10, borderRadius: 5 }}
-                        />
-                      </Box>
-                    </Paper>
-                  </Grid>
-
                   <Grid item xs={12}>
                     <Paper elevation={2} sx={{ p: 2, mb: 2 }}>
-                      <Typography variant="subtitle1" fontWeight="bold">Content Analysis</Typography>
+                      <Typography variant="h6" fontWeight="bold">Analysis</Typography>
                       <Divider sx={{ my: 1 }} />
                       <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
                         {analysis || "No analysis available"}
@@ -610,7 +678,7 @@ const ContentForm = () => {
 
                   <Grid item xs={12}>
                     <Paper elevation={2} sx={{ p: 2 }}>
-                      <Typography variant="subtitle1" fontWeight="bold">Recommendations</Typography>
+                      <Typography variant="h6" fontWeight="bold">Recommendations</Typography>
                       <Divider sx={{ my: 1 }} />
                       {recommendations && recommendations.length > 0 ? (
                         recommendations.map((rec, index) => (

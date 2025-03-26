@@ -34,9 +34,9 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-def upload_image_to_azure(image, directory):
+def upload_image_to_azure(image, directory, isGenerated=False):
     try:
-        blob_name = f"{directory}/{uuid.uuid4()}-{image.filename}"
+        blob_name = f"{directory}/{uuid.uuid4()}.png" if isGenerated else f"{directory}/{uuid.uuid4()}-{image.filename}"
         blob_client = blob_service_client.get_blob_client(container=AZURE_CONTAINER_NAME, blob=blob_name)
         blob_client.upload_blob(image, overwrite=True)
         image_url = f"https://{AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_CONTAINER_NAME}/{blob_name}"

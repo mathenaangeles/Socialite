@@ -1,14 +1,15 @@
-import Slider from "react-slick";
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
-import { Box, Card, CardContent, Typography, Button, LinearProgress, Alert, Divider } from "@mui/material";
+import { useNavigate, useParams, Link } from "react-router-dom";
+import { TableBody, Grid, Tooltip, IconButton, Box, Card, CardMedia, Typography, CardContent, LinearProgress, Alert, Divider, Paper, Table, TableRow, TableCell, TableContainer } from "@mui/material";
+import { Edit as EditIcon, ChevronRight as ChevronRightIcon, Link as LinkIcon} from '@mui/icons-material';
+
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 
 import Sidebar from "../../components/Sidebar";
 import { getProduct } from "../../slices/productSlice";
-
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 
 const Product = () => {
   const { id } = useParams();
@@ -24,12 +25,9 @@ const Product = () => {
     }
   }, [id, dispatch]);
 
-  if (loading) return <LinearProgress />;
-  if (error) return <Alert severity="error">{error}</Alert>;
-
   const settings = {
     dots: true,
-    infinite: product.images.length > 1,
+    infinite: product?.images?.length > 1,
     speed: 500,
     slidesToShow: 1,
     slidesToScroll: 1,
@@ -37,38 +35,152 @@ const Product = () => {
     autoplaySpeed: 3000,
   };
 
+  const parseImages = () => {
+    if (typeof product?.images === 'string') {
+      try {
+        return JSON.parse(product.images);
+      } catch {
+        return product.images?.split(',') || [];
+      }
+    }
+    return Array.isArray(product?.images) ? product.images : [];
+  };
+
+  const images = parseImages();
+
+  if (loading) return <LinearProgress />;
+  if (error) return <Alert severity="error">{error}</Alert>;
+
   return (
     <Box sx={{ display: "flex", minHeight: "100vh" }}>
-    <Sidebar />
-    <Box component="main" sx={{ flexGrow: 1, p: 3, display: "flex", justifyContent: "center" }}>
-      <Card sx={{ width: "90%", maxWidth: 900, p: 3 }}>
-        <Box sx={{ maxWidth: 600, mx: "auto", mb: 3 }}>
-          {product?.images?.length > 0 ? (
-            <Slider {...settings}>
-              {product.images.map((img, index) => (
-                <Box key={index} sx={{ display: "flex", justifyContent: "center" }}>
-                  <img 
-                    src={img} 
-                    alt={`Product ${index + 1}`} 
-                    style={{ width: "100%", maxHeight: 400, objectFit: "contain", borderRadius: "8px" }} 
-                  />
-                </Box>
-              ))}
-            </Slider>
-          ) : (
-            <Typography align="center" color="text.secondary">
-              No images available
-            </Typography>
+      <Sidebar />
+      <Box sx={{ flexGrow: 1, p: 5 }}>
+        <Card sx={{ maxWidth: 1200, margin: 'auto', borderRadius: 2, boxShadow: 3 }}>
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center', 
+              p: 3 
+            }}
+          >
+            <Box sx={{ flexGrow: 1 }}>
+              <Typography 
+                variant="subtitle2" 
+                color="text.secondary" 
+                sx={{ display: 'flex', alignItems: 'center', mb: 1 }}
+              >
+                <Link 
+                  to="/products" 
+                  style={{ textDecoration: 'none', color: 'inherit' }}
+                >
+                  Products
+                </Link> 
+                <ChevronRightIcon sx={{ fontSize: 18, mx: 0.5 }} />
+                {product?.name || 'Untitled'}
+              </Typography>
+                    
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography 
+                  variant="h4" 
+                  component="h1" 
+                  sx={{ fontWeight: 'bold', color: (theme) => theme.palette.text.primary, flexGrow: 1 }}
+                >
+                  {product?.name || 'Untitled'}
+                </Typography>
+                <Tooltip title="Edit">
+                  <IconButton color="secondary" onClick={() => navigate(`/product/form/${id}`)}>
+                    <EditIcon />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+            </Box>
+          </Box>
+          {images.length > 0 && (
+            <Box sx={{ maxWidth: 600, margin: 'auto', mb: 2, p: 2 }}>
+              <Slider {...settings}>
+                {images.map((img, index) => (
+                  <Box 
+                    key={index} 
+                    sx={{ 
+                      display: 'flex', 
+                      justifyContent: 'center', 
+                      alignItems: 'center',
+                      height: 250,
+                      overflow: 'hidden'
+                    }}
+                  >
+                    <CardMedia
+                      component="img"
+                      image={img}
+                      alt={`Image ${index + 1}`}
+                      sx={{ 
+                        maxHeight: "100%", 
+                        maxWidth: "100%", 
+                        objectFit: "contain",
+                        borderRadius: 2
+                      }}
+                    />
+                  </Box>
+                ))}
+              </Slider>
+            </Box>
           )}
-        </Box>
+          <CardContent>
+            
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                  {product?.description && (
+                    <Grid item xs={12} sx={{ mb: 1 }}>
+                      <Paper variant="outlined" sx={{ p: 2 }}>
+                        <Typography variant="body1">{product?.description}</Typography>
+                      </Paper>
+                    </Grid>
+                  )}
+              </Grid>
+              <Grid item xs={12}>
+                  <Typography variant="h5" sx={{ mb: 1 }}>Product Information</Typography>
+                  <Divider sx={{ mb: 2 }}/>
+                  <TableContainer component={Paper} variant="outlined">
+                    <Table>
+                      <TableBody>
+                        <TableRow>
+                          <TableCell>
+                            <LinkIcon color="primary" sx={{ mr: 1, verticalAlign: 'middle' }} />
+                            Price
+                          </TableCell>
+                          <TableCell>
+                            {product?.price && product?.currency ? (
+                              <>{product?.price?.toFixed(2) || "0.00"} {product?.currency}</>
+                            ) : 'N/A'}
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell>
+                            <LinkIcon color="primary" sx={{ mr: 1, verticalAlign: 'middle' }} />
+                            Category
+                          </TableCell>
+                          <TableCell>
+                            {product?.category ? (
+                              <>{product?.category || "0.00"}</>
+                            ) : 'N/A'}
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
+      </Box>
+
+    
+
+    {/* <Box component="main" sx={{ flexGrow: 1, p: 3, display: "flex", justifyContent: "center" }}>
+      <Card sx={{ width: "90%", maxWidth: 900, p: 3 }}>
+
         <CardContent>
-          <Typography variant="h4" fontWeight="bold" gutterBottom>
-            {product?.name || "Product Name"}
-          </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-            {product?.description || "No description available."}
-          </Typography>
-          <Divider sx={{ my: 2 }} />
           <Typography variant="h6">Category: {product?.category || "N/A"}</Typography>
           <Typography variant="h6">Price: {product?.currency} {product?.price?.toFixed(2) || "0.00"}</Typography>
           <Divider sx={{ my: 2 }} />
@@ -82,7 +194,7 @@ const Product = () => {
           </Box>
         </CardContent>
       </Card>
-    </Box>
+    </Box> */}
   </Box>
   );
 };

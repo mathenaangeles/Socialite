@@ -1,3 +1,4 @@
+import io
 from app import app, db
 from flask import request, jsonify
 from urllib.request import urlopen
@@ -53,8 +54,16 @@ def create_content():
     workflow = init_workflow(mode)
     final_state = workflow.invoke(state)
     
-    media_files = final_state.generated_media
-    media = [upload_image_to_azure(img, "content") for img in media_files if img]
+    media_files = request.files.getlist('newMedia')
+    media = [upload_image_to_azure(img, "contents") for img in media_files if img]
+    generated_media_files = final_state.generated_media
+    for url in generated_media_files:
+        try:
+            image_data = urlopen(url).read()
+            image_file = io.BytesIO(image_data)
+            media.append(upload_image_to_azure(image_file, "content", True))
+        except Exception as e:
+            print(f"ERROR: {e}")
 
     new_content = Content(
         title=title,
@@ -123,10 +132,28 @@ def content(id):
             product_data = {"name": product.name, "description": product.description} if product else None
 
         mode = data.get('mode')
-        new_media = request.files.getlist('media')
 
-        for med in content.media:
+        deleted_media_str = request.form.get('deletedMedia')
+        if deleted_media_str:
+            try:
+                deleted_media_list = json.loads(deleted_media_str)
+                if isinstance(deleted_media_list, str):
+                    deleted_media = json.loads(deleted_media_list)
+                else:
+                    deleted_media = deleted_media_list
+            except json.JSONDecodeError:
+                return jsonify({"ERROR": "Invalid image URL format"}), 400
+        else:
+            deleted_media = []
+        content.media = [med for med in content.media if med not in deleted_media]
+        for med in deleted_media:
             delete_image_from_azure(med)
+        db.session.commit()
+
+        new_media = request.files.getlist('newMedia')
+        uploaded_media = [upload_image_to_azure(med, "content") for med in new_media if med]
+        content.media = content.media + uploaded_media
+        db.session.commit()
 
         if mode:
             instructions = data.get('instructions', None)
@@ -153,25 +180,27 @@ def content(id):
             workflow = init_workflow(mode)
             final_state = workflow.invoke(state)
 
-            content.text = final_state.generated_text
-            content.tags = final_state.generated_tags
+            if content=="text_only" or mode=="full":
+                content.text = final_state.generated_text
+                content.tags = final_state.generated_tags
 
             content.score = final_state.generated_score
             content.analysis = final_state.generated_analysis
             content.recommendations = final_state.generated_recommendations
 
-            new_media = []
+            generated_media = []
             if mode=="media_only" or mode=="full":
                 for url in final_state.generated_media:
                     try:
                         image_data = urlopen(url).read()
-                        new_media.append(image_data)
+                        image_file = io.BytesIO(image_data) 
+                        image_file.seek(0)
+                        generated_media.append(image_file)
                     except Exception as e:
                         print(f"ERROR: {e}")
-
-        content.media = [upload_image_to_azure(med, "content") for med in new_media if med]
-        db.session.commit()
-
+            uploaded_generated_media = [upload_image_to_azure(med, "content") for med in generated_media if med]
+            content.media = content.media + uploaded_generated_media
+            db.session.commit()
     return jsonify(content.to_dict()), 200
 
 @app.route('/contents', methods=['GET'])

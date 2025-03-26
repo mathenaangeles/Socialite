@@ -20,7 +20,9 @@ const ProductForm = () => {
   const [price, setPrice] = useState(0);
   const [currency, setCurrency] = useState("GBP");
   const [category, setCategory] = useState("");
-  const [images, setImages] = useState([]);
+  const [newImages, setNewImages] = useState([]); 
+  const [existingImages, setExistingImages] = useState([]);
+  const [deletedImages, setDeletedImages] = useState([]); 
 
   useEffect(() => {
     if (id) {
@@ -35,17 +37,22 @@ const ProductForm = () => {
       setPrice(product.price || 0);
       setCurrency(product.currency || "GBP");
       setCategory(product.category || "");
-      setImages(product.images || []);
+      setExistingImages(product.images || []);
     }
   }, [id, product]);
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
-    setImages([...images, ...files]);
+    setNewImages([...newImages, ...files]);
   };
 
-  const handleRemoveImage = (index) => {
-    setImages(images.filter((_, i) => i !== index));
+  const handleRemoveImage = (index, isExisting) => {
+    if (isExisting) {
+      setDeletedImages([...deletedImages, existingImages[index]]);
+      setExistingImages(existingImages.filter((_, i) => i !== index));
+    } else {
+      setNewImages(newImages.filter((_, i) => i !== index));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -57,9 +64,9 @@ const ProductForm = () => {
     productData.append("currency", currency);
     productData.append("category", category);
 
-    images.forEach((image) => {
-        productData.append("images", image);
-    });
+    newImages.forEach((image) => productData.append("newImages", image));
+    productData.append("deletedImages", JSON.stringify(deletedImages));
+
     if (id) {
       await dispatch(updateProduct({ id, productData }));
       navigate(`/product/form/${id}`);
@@ -148,37 +155,50 @@ const ProductForm = () => {
                     <input type="file" multiple hidden onChange={handleImageUpload} />
                     </Button>
                     <Box sx={{ display: "flex", gap: 1, mt: 3, flexWrap: "wrap" }}>
-                        {images.map((image, index) => {
-                            const imageUrl = image instanceof File ? URL.createObjectURL(image) : image;
-                            return (
-                            <Box key={index} sx={{ position: "relative", display: "inline-block" }}>
-                                <img
-                                src={imageUrl}
-                                alt="Preview"
-                                width={100}
-                                height={100}
-                                style={{ borderRadius: 8, objectFit: "cover" }}
-                                />
-                                <IconButton
-                                size="small"
-                                sx={{
-                                    position: "absolute",
-                                    top: 0,
-                                    right: 0,
-                                    transform: "translate(50%, -50%)",
-                                    backgroundColor: "rgba(0, 0, 0, 0.5)",
-                                    color: "white",
-                                    padding: "4px",
-                                    "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.8)" },
-                                }}
-                                onClick={() => handleRemoveImage(index)}
-                                >
-                                <Close fontSize="small" />
-                                </IconButton>
-                            </Box>
-                            );
-                        })}
+                      {existingImages.map((image, index) => (
+                        <Box key={`existing-${index}`} sx={{ position: "relative", display: "inline-block" }}>
+                          <img src={image} alt="Existing" width={100} height={100} style={{ borderRadius: 8, objectFit: "cover" }} />
+                          <IconButton
+                            size="small"
+                            sx={{
+                              position: "absolute",
+                              top: 0,
+                              right: 0,
+                              transform: "translate(50%, -50%)",
+                              backgroundColor: "rgba(0, 0, 0, 0.5)",
+                              color: "white",
+                              padding: "4px",
+                              "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.8)" },
+                            }}
+                            onClick={() => handleRemoveImage(index, true)}
+                          >
+                            <Close fontSize="small" />
+                          </IconButton>
                         </Box>
+                      ))}
+
+                      {newImages.map((image, index) => (
+                        <Box key={`new-${index}`} sx={{ position: "relative", display: "inline-block" }}>
+                          <img src={URL.createObjectURL(image)} alt="New" width={100} height={100} style={{ borderRadius: 8, objectFit: "cover" }} />
+                          <IconButton
+                            size="small"
+                            sx={{
+                              position: "absolute",
+                              top: 0,
+                              right: 0,
+                              transform: "translate(50%, -50%)",
+                              backgroundColor: "rgba(0, 0, 0, 0.5)",
+                              color: "white",
+                              padding: "4px",
+                              "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.8)" },
+                            }}
+                            onClick={() => handleRemoveImage(index, false)}
+                          >
+                            <Close fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      ))}
+                    </Box>
                 </Box>
 
               <Box sx={{ display: "flex", gap: 1.5, mt: 2 }}>

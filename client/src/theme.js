@@ -38,6 +38,17 @@ const theme = createTheme({
         }
       },
     },
+    MuiCssBaseline: {
+      styleOverrides: {
+        ".slick-dots li button:before": {
+          color: "white !important",
+          fontSize: "12px",
+        },
+        ".slick-dots li.slick-active button:before": {
+          color: "white !important", 
+        },
+      },
+    },
   },
 });
 

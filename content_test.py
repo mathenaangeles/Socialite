@@ -21,7 +21,6 @@ class MarketResearch(BaseModel):
     keywords:  List[str] = Field(default_factory=list, description="High-value SEO keywords with search volume data")
     demographic: str = Field(description="Detailed profile of target demographic including preferences, behaviors, and pain points")
     competition: str = Field(description="Analysis of competitive landscape with content strategy insights")
-    research: str = Field(description="Additional research insights to guide content creation")
 
 class GeneratedContent(BaseModel):
     text: str = Field(description="Main body text content or caption")
@@ -62,14 +61,14 @@ def init_research_agent():
 
         messages = [
             ("system", """You are an expert market research analyst specializing in content strategy and digital marketing.
-            Your task is to gather comprehensive, actionable information about the target market, audience demographics and psychographics, 
-            trending topics, competitive landscape, and platform-specific best practices.
+            Your task is to gather comprehensive, actionable information about the target market, audience demographics and 
+            psychographics, trending topics, competitive landscape, and platform-specific best practices.
             
             Your research should be data-driven, current, and directly applicable to content creation.
             Provide analyses that will guide creative decisions and optimize content performance.
             
-            Use these tools: {tools}
-            Available tools: {tool_names}
+            Tools: {tools}
+            Tool Names: {tool_names}
             """),
             ("placeholder", "{chat_history}"),
             HumanMessagePromptTemplate(
@@ -104,8 +103,11 @@ def conduct_market_research(state: Dict[str, Any]):
     research_agent = init_research_agent()
 
     research_prompt = f"""
-    Identify trends, demographics, and competitive landscape for {content_state.type} post on {content_state.channel}. Give 
-    your response in less than 100 characters.
+    In less than 50 characters, provide insights for {content_state.type} on {content_state.channel}:
+        - Top 2 trends
+        - Audience (1 sentence)
+        - Top 2 SEO words
+        - Competitive edge (less than 10 words)
     """
 
     research_result =  research_agent.invoke({
@@ -119,20 +121,23 @@ def conduct_market_research(state: Dict[str, Any]):
     conduct_market_research_llm = llm.with_structured_output(MarketResearch)
 
     conduct_market_research_prompt = ChatPromptTemplate.from_messages([
-    ("system", """You are an expert marketing analyst who extracts and organizes actionable insights
-    from research data to facilitate strategic content creation.
-    
-    Summarize the provided research and structure it into clear categories that will directly
-    guide content development decisions in less than 100 characters. Focus on specificity and actionability."""),
-    ("human", f"Structure the following research into a comprehensive market analysis:\n\n{research['output']}")
-])
+        ("system", """You are an expert marketing analyst."""),
+        ("human", f"""Structure the following research into a You are an AI that formats research findings into JSON. Ensure your response strictly follows this structure:
+            {
+                "trends": ["list", "of", "trends"],
+                "keywords": ["list", "of", "keywords"],
+                "demographic": "text describing demographic",
+                "competition": "text describing competition"
+            }
+         :\n\n{research['output']}""")
+    ])
 
     try:
         response = conduct_market_research_llm.invoke(conduct_market_research_prompt.format_messages())
         content_state.market_research = response.model_dump()
     except Exception as e:
         print(f"ERROR: {e}")    
-    return content_state.model_dump()
+    return content_state
     
 def generate_content(state: Dict[str, Any]):
     """Generate text content based on market research"""
@@ -143,40 +148,22 @@ def generate_content(state: Dict[str, Any]):
 
     generate_content_llm = llm.with_structured_output(GeneratedContent)
 
-    generate_content_prompt = ChatPromptTemplate.from_messages([
-        ("system", f"""
-        You are an expert content creator with years of experience creating viral 
-        marketing content. 
-
-        Create comprehensive content following industry best practices for {content_state.type} on 
-        {content_state.channel}, incorporating SEO optimization, engagement triggers, and platform-specific 
-        formatting."""),
-        ("human", f"""Create optimized {content_state.type} content for {content_state.channel} based on
-        
-        {f"""Product:
-        {content_state.product}.""" if content_state.product else ""}
-
-        Title: {content_state.title}
-
-        Channel: {content_state.channel}
-        
-        Content Type: {content_state.type}
-        
-        Objective: 
-        {content_state.objective if content_state.objective else """Create content that will drive positive engagement and conversion."""}
-        
-        Target Audience: 
-        {content_state.audience if content_state.audience else "General Audience"}
-
-        Market Research: 
-        {json.dumps(content_state.market_research, indent=2) if content_state.market_research else "There is no market research available."}
-        
-        Additional Instructions:
-        {content_state.instructions if content_state.instructions else """Follow best practices for this channel and content type. Make sure"
-        it appeals to the target audience to maximize engagement."""}
-        
-        """)
-    ])
+    generate_content_prompt = f"""
+    Create optimized content for {content_state.type} on {content_state.channel}.
+    
+    Market Research:
+    - Trends: {content_state.market_research.get('trends', [])}
+    - Keywords: {content_state.market_research.get('keywords', [])}
+    - Demographic: {content_state.market_research.get('demographic', '')}
+    
+    Respond ONLY with a JSON object exactly matching this structure:
+    {{
+        "text": "Full content text (at least 100 words)",
+        "tags": ["tag1", "tag2", "tag3"]
+    }}
+    
+    Ensure content is engaging, informative, and aligned with market insights.
+    """
 
     try:
         response = generate_content_llm.invoke(generate_content_prompt.format_messages())
@@ -184,7 +171,7 @@ def generate_content(state: Dict[str, Any]):
         content_state.generated_tags = response.tags
     except Exception as e:
         print(f"ERROR: {e}")    
-    return content_state.model_dump()
+    return content_state
 
 def generate_media(state: Dict[str, Any]):  
     """Generate image content based on market research"""
@@ -204,18 +191,7 @@ def generate_media(state: Dict[str, Any]):
     {f"""Product:
         {content_state.product}.""" if content_state.product else ""}
 
-        Title: {content_state.title}
-
-        Channel: {content_state.channel}
-        
-        Content Type: {content_state.type}
-        
-        Target Audience: 
-        {content_state.audience if content_state.audience else "General Audience"}
-
-        Market Research: 
-        {json.dumps(content_state.market_research, indent=2) if content_state.market_research else "There is no market research available."}
-    """
+        Title: {content_state.title}"""
     
     try:
         response = dalle.images.generate(
@@ -228,7 +204,7 @@ def generate_media(state: Dict[str, Any]):
             content_state.generated_media.append(med.url)
     except Exception as e:
         print(f"ERROR: {e}") 
-    return content_state.model_dump()
+    return content_state
     
 def evaluate_content(state: Dict[str, Any]):
     """Evaluate the generated content against industry benchmarks and objectives"""
@@ -239,28 +215,18 @@ def evaluate_content(state: Dict[str, Any]):
 
     evaluate_content_llm = llm.with_structured_output(ContentEvaluation)
     evaluation_content_prompt = ChatPromptTemplate.from_messages([
-        ("system", """
-        You are a senior content strategist and marketing analyst specializing in performance evaluation.
-        Your expertise includes data-driven content assessment, competitive benchmarking, and optimization strategy.
-         """),
+        ("system", """You are a marketing analyst specializing in performance evaluation."""),
         ("human", f"""Evaluate the content below:
-         
-        CONTENT DETAILS:
-        
+
         Title: {content_state.title}
         Channel: {content_state.channel}
         Content Type: {content_state.type}
         Text: {content_state.generated_text}
         Tags: {', '.join(content_state.generated_tags) if content_state.generated_tags else "N/A"}
-        
-        CONTEXT:
-        
         Objective: 
         {content_state.objective if content_state.objective else """Create content that will drive positive engagement and conversion."""}
-        
         Target Audience: 
         {content_state.audience if content_state.audience else "General Audience"}
-        
         Provide an overall score (1-10) and 3 specific recommendations to improve it, if any.
         """)
     ])
@@ -273,13 +239,13 @@ def evaluate_content(state: Dict[str, Any]):
     except Exception as e:
         print(f"ERROR: {e}")
 
-    return content_state.model_dump()
+    return content_state
 
 def init_workflow(mode="full"):
     workflow = StateGraph(dict)
     
     workflow.add_node("market_research", conduct_market_research)
-    if mode=="full" or mode=="content_only":
+    if mode=="full" or mode=="text_only":
         workflow.add_node("generate_content", generate_content)
     if mode=="full" or mode=="media_only":
         workflow.add_node("generate_media", generate_media)
@@ -289,7 +255,7 @@ def init_workflow(mode="full"):
         workflow.add_edge("market_research", "generate_content")
         workflow.add_edge("generate_content", "generate_media")
         workflow.add_edge("generate_media", "evaluate_content")
-    elif mode=="content_only":
+    elif mode=="text_only":
         workflow.add_edge("market_research", "generate_content")
         workflow.add_edge("generate_content", "evaluate_content")
     elif mode=="media_only":
