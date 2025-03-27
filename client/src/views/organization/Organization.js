@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { Edit as EditIcon } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import { Box, IconButton, Divider, Typography, Button, LinearProgress, TableContainer, Table, TableHead, Paper, TableRow, TableCell, TableBody, Alert } from "@mui/material";
+import { Box, IconButton, Divider, Typography, LinearProgress, TableContainer, Table, TableHead, Paper, TableRow, TableCell, TableBody, Alert } from "@mui/material";
 
 import Sidebar from "../../components/Sidebar";
 import { getOrganization } from "../../slices/organizationSlice";
@@ -32,14 +32,14 @@ const Organization = () => {
 
           <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <Typography variant="h4" fontWeight="bold">
-              {organization.name}
+              {organization?.name}
             </Typography>
             <IconButton onClick={() => navigate(`/organization/form/${organization.id}`)} color="primary">
               <EditIcon sx={{ color: "white" }}/>
             </IconButton>
           </Box>
           <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
-            {organization.description || "No description provided."}
+            {organization?.description || "No description provided."}
           </Typography>
           <Divider sx={{ my: 3 }} />
 
@@ -53,8 +53,8 @@ const Organization = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {organization.members.length > 0 ? (
-                  organization.members.map((member) => (
+                {organization?.members.length > 0 ? (
+                  organization?.members.map((member) => (
                     <TableRow key={member.id} hover>
                       <TableCell>{member.email}</TableCell>
                       <TableCell>{member.first_name}</TableCell>

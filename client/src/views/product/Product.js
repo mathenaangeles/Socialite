@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { TableBody, Grid, Tooltip, IconButton, Box, Card, CardMedia, Typography, CardContent, LinearProgress, Alert, Divider, Paper, Table, TableRow, TableCell, TableContainer } from "@mui/material";
-import { Edit as EditIcon, ChevronRight as ChevronRightIcon, Link as LinkIcon} from '@mui/icons-material';
+import { MonetizationOn as MonetizationOnIcon, LocalOffer as LocalOfferIcon, Edit as EditIcon, ChevronRight as ChevronRightIcon, Category as CategoryIcon} from '@mui/icons-material';
 
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
@@ -144,9 +144,20 @@ const Product = () => {
                   <TableContainer component={Paper} variant="outlined">
                     <Table>
                       <TableBody>
+                      <TableRow>
+                          <TableCell>
+                            <CategoryIcon color="primary" sx={{ mr: 1, verticalAlign: 'middle' }} />
+                            Category
+                          </TableCell>
+                          <TableCell>
+                            {product?.category ? (
+                              <>{product?.category || ""}</>
+                            ) : 'N/A'}
+                          </TableCell>
+                        </TableRow>
                         <TableRow>
                           <TableCell>
-                            <LinkIcon color="primary" sx={{ mr: 1, verticalAlign: 'middle' }} />
+                            <LocalOfferIcon color="primary" sx={{ mr: 1, verticalAlign: 'middle' }} />
                             Price
                           </TableCell>
                           <TableCell>
@@ -157,12 +168,12 @@ const Product = () => {
                         </TableRow>
                         <TableRow>
                           <TableCell>
-                            <LinkIcon color="primary" sx={{ mr: 1, verticalAlign: 'middle' }} />
-                            Category
+                            <MonetizationOnIcon color="primary" sx={{ mr: 1, verticalAlign: 'middle' }} />
+                            Sales
                           </TableCell>
                           <TableCell>
-                            {product?.category ? (
-                              <>{product?.category || "0.00"}</>
+                            {product?.sales ? (
+                              <>{product?.sales || "0"} units</>
                             ) : 'N/A'}
                           </TableCell>
                         </TableRow>
@@ -174,27 +185,6 @@ const Product = () => {
           </CardContent>
         </Card>
       </Box>
-
-    
-
-    {/* <Box component="main" sx={{ flexGrow: 1, p: 3, display: "flex", justifyContent: "center" }}>
-      <Card sx={{ width: "90%", maxWidth: 900, p: 3 }}>
-
-        <CardContent>
-          <Typography variant="h6">Category: {product?.category || "N/A"}</Typography>
-          <Typography variant="h6">Price: {product?.currency} {product?.price?.toFixed(2) || "0.00"}</Typography>
-          <Divider sx={{ my: 2 }} />
-          <Box sx={{ display: "flex", gap: 1.5, mt: 2 }}>
-            <Button variant="contained" color="primary" onClick={() => navigate(`/product/form/${id}`)}>
-              Edit
-            </Button>
-            <Button variant="outlined" color="secondary" onClick={() => navigate(-1)}>
-              Back
-            </Button>
-          </Box>
-        </CardContent>
-      </Card>
-    </Box> */}
   </Box>
   );
 };

@@ -1,13 +1,12 @@
+import dayjs from "dayjs";
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
-import { Close } from "@mui/icons-material";
-import dayjs from "dayjs";
-import { IconButton, Card, Divider, Alert, LinearProgress, TextField, Button, Container, Typography, Box, MenuItem, Select, FormControl, InputLabel, Grid, Chip, FormHelperText, Tab, Tabs, Paper} from "@mui/material";
-import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
-
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers';
+import { useNavigate, useParams, Link } from "react-router-dom";
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import { Close as CloseIcon, ChevronRight as ChevronRightIcon } from "@mui/icons-material";
+import { IconButton, Card, Divider, Alert, LinearProgress, TextField, Button, Container, Typography, Box, MenuItem, Select, FormControl, InputLabel, Grid, Chip, FormHelperText, Tab, Tabs, Paper} from "@mui/material";
 
 import Sidebar from "../../components/Sidebar";
 import { getProducts } from "../../slices/productSlice";
@@ -241,7 +240,21 @@ const ContentForm = () => {
         <Box sx={{ my: 3, p: 3 }}>
           {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
           <Card sx={{ p: 3 }}>
-            <Typography variant="h5" sx={{ mb: 2 }}>
+            <Typography 
+              variant="subtitle2" 
+              color="text.secondary" 
+              sx={{ display: 'flex', alignItems: 'center', mb: 1 }}
+            >
+              <Link 
+                to="/contents" 
+                style={{ textDecoration: 'none', color: 'inherit' }}
+              >
+                Contents
+              </Link> 
+              <ChevronRightIcon sx={{ fontSize: 18, mx: 0.5 }} />
+              { content?.title || 'Content Form'}
+            </Typography>
+            <Typography variant="h5" sx={{ my: 2 }}>
               {id ? "Edit Content" : "New Content"}
             </Typography>
             <Divider sx={{ mb: 2 }} />
@@ -586,7 +599,7 @@ const ContentForm = () => {
                           }}
                           onClick={() => handleRemoveMedia(index)}
                         >
-                          <Close fontSize="small" />
+                          <CloseIcon fontSize="small" />
                         </IconButton>
                       </Box>
                     ))}

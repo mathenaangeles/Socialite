@@ -99,6 +99,16 @@ def conduct_market_research(state: Dict[str, Any]):
     research_agent = init_research_agent()
 
     research_prompt = f"""
+    Provide brief market research insights for {content_state.type} on {content_state.channel}.
+    
+    Your response should contain the top trends, SEO keywords, a demographic profile, and a 
+    summary of the competitive landscape.
+    """
+
+    # Comment out the line below, if you are using a free tier account with a low token rate limit.
+    # research = research_agent.invoke({"input": research_prompt})
+   
+    conduct_market_research_prompt = f"""
     Provide market research insights for {content_state.type} on {content_state.channel}.
     
     Respond ONLY with a JSON object exactly matching this structure:
@@ -115,7 +125,7 @@ def conduct_market_research(state: Dict[str, Any]):
     conduct_market_research_llm = llm.with_structured_output(MarketResearch)
 
     try:
-        response = conduct_market_research_llm.invoke(research_prompt)
+        response = conduct_market_research_llm.invoke(conduct_market_research_prompt)
         content_state.market_research = response.model_dump()
     except ValidationError as e:
         print(f"Market Research Validation Error: {e}")

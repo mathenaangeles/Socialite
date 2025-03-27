@@ -13,6 +13,7 @@ def create_product():
     currency = data.get('currency', 'USD')
     description = data.get('description')
     category = data.get('category')
+    sales = data.get('sales')
     
     user = request.user
     if not user.organization_id:
@@ -28,6 +29,7 @@ def create_product():
         description=description,
         category=category,
         images=uploaded_images,
+        sales=sales,
         organization_id=user.organization_id
     )
 
@@ -61,6 +63,7 @@ def product(id):
         product.currency = data.get('currency', product.currency)
         product.description = data.get('description', product.description)
         product.category = data.get('category', product.category)
+        product.sales = data.get('sales', product.sales)
 
         deleted_images_str = request.form.get('deletedImages')
         if deleted_images_str:

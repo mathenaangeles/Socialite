@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
-import { Close } from "@mui/icons-material";
+import { useNavigate, useParams, Link } from "react-router-dom";
+import { Close as CloseIcon, ChevronRight as ChevronRightIcon } from "@mui/icons-material";
 import { IconButton, Card, Divider, Alert, LinearProgress, TextField, Button, Container, Typography, Box, MenuItem, Select, FormControl, InputLabel } from "@mui/material";
 
 import Sidebar from "../../components/Sidebar";
@@ -20,6 +20,7 @@ const ProductForm = () => {
   const [price, setPrice] = useState(0);
   const [currency, setCurrency] = useState("GBP");
   const [category, setCategory] = useState("");
+  const [sales, setSales] = useState(0);
   const [newImages, setNewImages] = useState([]); 
   const [existingImages, setExistingImages] = useState([]);
   const [deletedImages, setDeletedImages] = useState([]); 
@@ -37,6 +38,7 @@ const ProductForm = () => {
       setPrice(product.price || 0);
       setCurrency(product.currency || "GBP");
       setCategory(product.category || "");
+      setSales(product.sales || 0);
       setExistingImages(product.images || []);
     }
   }, [id, product]);
@@ -63,6 +65,7 @@ const ProductForm = () => {
     productData.append("price", price);
     productData.append("currency", currency);
     productData.append("category", category);
+    productData.append("sales", sales);
 
     newImages.forEach((image) => productData.append("newImages", image));
     productData.append("deletedImages", JSON.stringify(deletedImages));
@@ -87,7 +90,21 @@ const ProductForm = () => {
         <Box sx={{ my: 3, p: 3 }}>
           {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
           <Card sx={{ p: 3 }}>
-            <Typography variant="h5" sx={{ mb: 2 }}>
+            <Typography 
+              variant="subtitle2" 
+              color="text.secondary" 
+              sx={{ display: 'flex', alignItems: 'center', mb: 1 }}
+            >
+              <Link 
+                to="/products" 
+                style={{ textDecoration: 'none', color: 'inherit' }}
+              >
+                Products
+              </Link> 
+              <ChevronRightIcon sx={{ fontSize: 18, mx: 0.5 }} />
+              {product?.name || 'Product Form'}
+            </Typography>
+            <Typography variant="h5" sx={{ my: 2 }}>
               {id ? "Edit Product" : "New Product"}
             </Typography>
             <Divider sx={{ mb: 2 }} />
@@ -148,7 +165,17 @@ const ProductForm = () => {
                     variant="outlined"
                     onChange={(e) => setCategory(e.target.value)}
                 />
-
+                <TextField
+                    fullWidth
+                    label="Sales"
+                    type="number"
+                    value={sales}
+                    margin="normal"
+                    color="secondary"
+                    variant="outlined"
+                    onChange={(e) => setSales(e.target.value)}
+                    required
+                />
                 <Box sx={{ mt: 2 }}>
                     <Button variant="contained" component="label" color="primary" sx={{ mt: 1 }}>
                     Upload Image
@@ -172,7 +199,7 @@ const ProductForm = () => {
                             }}
                             onClick={() => handleRemoveImage(index, true)}
                           >
-                            <Close fontSize="small" />
+                            <CloseIcon fontSize="small" />
                           </IconButton>
                         </Box>
                       ))}
@@ -194,13 +221,12 @@ const ProductForm = () => {
                             }}
                             onClick={() => handleRemoveImage(index, false)}
                           >
-                            <Close fontSize="small" />
+                            <CloseIcon fontSize="small" />
                           </IconButton>
                         </Box>
                       ))}
                     </Box>
                 </Box>
-
               <Box sx={{ display: "flex", gap: 1.5, mt: 2 }}>
                 <Button type="submit" variant="contained" color="primary" disabled={loading}>
                   Submit

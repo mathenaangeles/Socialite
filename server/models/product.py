@@ -12,6 +12,8 @@ class Product(db.Model, SerializerMixin):
     currency = db.Column(db.String(3), default="USD", nullable=False) 
     description = db.Column(db.Text, nullable=True)
     category = db.Column(db.String(250), nullable=True)
+    sales = db.Column(db.Integer, nullable=False, default=0)
+    stocks = db.Column(db.Integer, nullable=False, default=0)
 
     images = db.Column(JSON, nullable=True, default=list)
 
