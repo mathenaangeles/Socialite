@@ -2,7 +2,15 @@
 
 ### Prerequisites
 - [Python 3.9+](https://www.python.org/downloads/)
-- [Node.js](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
+- [Node.js 16+](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
+
+### Azure Services
+- [Azure AI Foundry](https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry)
+- [Azure AI Content Safety](https://azure.microsoft.com/en-us/products/ai-services/ai-content-safety)
+- [Azure SQL Database](https://azure.microsoft.com/en-us/products/azure-sql/database)
+- [Azure Blog Storage](https://learn.microsoft.com/en-us/azure/storage/common/storage-account-overview)
+- [Azure OpenAI Service](https://azure.microsoft.com/en-us/products/ai-services/openai-service)
+- [Azure Functions](https://learn.microsoft.com/en-us/azure/azure-functions/functions-overview)
 
 ### Getting Started
 1. Create a virtual environment by running `python -m venv .venv`. 
