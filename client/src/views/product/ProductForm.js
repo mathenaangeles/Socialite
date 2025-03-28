@@ -102,7 +102,7 @@ const ProductForm = () => {
                 Products
               </Link> 
               <ChevronRightIcon sx={{ fontSize: 18, mx: 0.5 }} />
-              {product?.name || 'Product Form'}
+              Product Form
             </Typography>
             <Typography variant="h5" sx={{ my: 2 }}>
               {id ? "Edit Product" : "New Product"}

@@ -2,6 +2,8 @@ import os
 from dotenv import load_dotenv
 from openai import AzureOpenAI
 from langchain_openai import AzureChatOpenAI
+from azure.core.credentials import AzureKeyCredential
+from azure.ai.contentsafety import ContentSafetyClient
 from langchain_community.tools import DuckDuckGoSearchResults
 
 load_dotenv()
@@ -46,3 +48,9 @@ dalle = init_dalle_client()
 #     print(f"ERROR: {e}")
 
 search_tool = DuckDuckGoSearchResults()
+
+def init_content_safety_client():
+    return ContentSafetyClient(os.getenv("AZURE_CONTENT_SAFETY_ENDPOINT"), AzureKeyCredential(os.getenv("AZURE_CONTENT_SAFETY_KEY")))
+
+content_safety_client = init_content_safety_client()
+        

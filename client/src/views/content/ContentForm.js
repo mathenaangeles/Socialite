@@ -252,7 +252,7 @@ const ContentForm = () => {
                 Contents
               </Link> 
               <ChevronRightIcon sx={{ fontSize: 18, mx: 0.5 }} />
-              { content?.title || 'Content Form'}
+              Content Form
             </Typography>
             <Typography variant="h5" sx={{ my: 2 }}>
               {id ? "Edit Content" : "New Content"}

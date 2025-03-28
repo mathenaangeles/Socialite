@@ -10,9 +10,12 @@ const Sidebar = () => {
 
   const navItems = [
     { text: "Profile", icon: <Person />, path: "/profile" },
-    { text: "Organization", icon: <Business />, path: `/organization/${user?.organization.id}` },
-    { text: "Products", icon: <Storefront />, path: `/products` },
-    { text: "Content", icon: <PermMedia />, path: `/contents` },
+    ...(user?.organization
+      ? [{ text: "Organization", icon: <Business />, path: `/organization/${user.organization.id}` },
+        { text: "Products", icon: <Storefront />, path: `/products` },
+        { text: "Content", icon: <PermMedia />, path: `/contents` },
+      ]
+      : []),
   ];
 
   return (

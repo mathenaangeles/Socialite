@@ -180,9 +180,10 @@ def content(id):
             workflow = init_workflow(mode)
             final_state = workflow.invoke(state)
 
-            if content=="text_only" or mode=="full":
+            if mode=="text_only" or mode=="full":
                 content.text = final_state.generated_text
                 content.tags = final_state.generated_tags
+                db.session.commit()
 
             content.score = final_state.generated_score
             content.analysis = final_state.generated_analysis
@@ -198,7 +199,7 @@ def content(id):
                         generated_media.append(image_file)
                     except Exception as e:
                         print(f"ERROR: {e}")
-            uploaded_generated_media = [upload_image_to_azure(med, "content") for med in generated_media if med]
+            uploaded_generated_media = [upload_image_to_azure(med, "content", True) for med in generated_media if med]
             content.media = content.media + uploaded_generated_media
             db.session.commit()
     return jsonify(content.to_dict()), 200

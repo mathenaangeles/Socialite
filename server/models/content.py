@@ -16,7 +16,7 @@ class Content(db.Model, SerializerMixin):
     status = db.Column(db.String(250), nullable=False)
     
     link = db.Column(db.String(500), nullable=True)
-    text = db.Column(db.Text, nullable=True)
+    text = db.Column(db.UnicodeText, nullable=True)
     media = db.Column(JSON, nullable=True, default=list)
     tags = db.Column(JSON, nullable=True, default=list)
 

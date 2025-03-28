@@ -33,7 +33,7 @@ def create_organization():
         "id": new_organization.id,
         "name": new_organization.name,
         "description": new_organization.description,
-        "members": [{"id": u.id, "email": u.email} for u in User.query.filter_by(organization_id=organization.id).all()]
+        "members": [{"id": u.id, "email": u.email} for u in User.query.filter_by(organization_id=new_organization.id).all()]
     }), 200
 
 @app.route('/organization/<id>', methods=['GET', 'PUT', 'DELETE'])

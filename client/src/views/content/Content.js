@@ -168,7 +168,7 @@ const Content= () => {
             {content?.text && (
             <Grid item xs={12} sx={{ mb: 3 }}>
                 <Paper variant="outlined" sx={{ p: 2 }}>
-                  <Typography variant="body1">{content.text}</Typography>
+                  <Typography variant="body1" sx={{ whiteSpace: "pre-line" }}>{content.text}</Typography>
                   {Array.isArray(tags) && tags.length > 0 && (
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2 }}>
                       {(tags.map((tag, index) => (

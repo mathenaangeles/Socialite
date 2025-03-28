@@ -1,18 +1,15 @@
 import os
 import json
 from dotenv import load_dotenv
+from typing import List, Dict, Any, Optional
 from pydantic import BaseModel, Field, ValidationError
-from typing import List, Dict, Any, Optional, Union
+from azure.ai.contentsafety.models import AnalyzeTextOptions, TextCategory
 
-from langchain.tools import Tool
-from langgraph.prebuilt import ToolNode
 from langgraph.graph import StateGraph, END
-from langchain.prompts import MessagesPlaceholder
-from langchain.schema import AIMessage, HumanMessage, SystemMessage
+from langchain.agents import AgentExecutor, create_structured_chat_agent
 from langchain.prompts import ChatPromptTemplate, PromptTemplate, HumanMessagePromptTemplate
-from langchain.agents import AgentExecutor, create_structured_chat_agent, AgentOutputParser
 
-from services.tools import llm, dalle, search_tool
+from services.tools import llm, dalle, search_tool, content_safety_client
 
 load_dotenv()
 
@@ -138,6 +135,30 @@ def conduct_market_research(state: Dict[str, Any]):
     
     return content_state
 
+def check_content_safety(text: str):
+    """
+    Check the safety of generated content using Azure AI Content Safety.
+    """
+    try:
+        request_body = AnalyzeTextOptions(text=text)
+        response = content_safety_client.analyze_text(request_body)
+        severity_thresholds = {
+            TextCategory.HATE: 2,
+            TextCategory.SEXUAL: 2,
+            TextCategory.VIOLENCE: 2,
+            TextCategory.SELF_HARM: 2
+        }
+        for category in severity_thresholds:
+            result = getattr(response, f"{category.lower()}_result", None)
+            if result and result.severity > severity_thresholds[category]:
+                return False
+        return True
+
+    except Exception as e:
+        print(f"Content Safety Check Error: {e}")
+        print(f"Full Response: {response}")
+        return True
+
 def generate_content(state: Dict[str, Any]):
     """Generate text content based on market research"""
     if isinstance(state, ContentState):
@@ -173,12 +194,14 @@ def generate_content(state: Dict[str, Any]):
 
     try:
         response = generate_content_llm.invoke(generate_content_prompt)
-        content_state.generated_text = response.text
-        content_state.generated_tags = response.tags
+        if check_content_safety(response.text):
+            content_state.generated_text = response.text
+            content_state.generated_tags = response.tags
+        else:
+            content_state.generated_text = "Content did not pass safety guidelines. Please review and regenerate."
+            content_state.generated_tags = ["SafetyCheckFailed"]
     except ValidationError as e:
         print(f"Content Generation Validation Error: {e}")
-        content_state.generated_text = "Innovative content exploring current market trends and digital strategies."
-        content_state.generated_tags = ["innovation", "market-trends", "digital-strategy"]
     
     return content_state
 
@@ -212,9 +235,6 @@ def generate_media(state: Dict[str, Any]):
         content_state.generated_media = [med.url for med in response.data] 
     except Exception as e:
         print(f"Media Generation Error: {e}")
-        content_state.generated_media = [
-            "/api/placeholder/1024/1024"
-        ]
     
     return content_state
     
@@ -231,17 +251,10 @@ def evaluate_content(state: Dict[str, Any]):
 
     Context:
     {f"""Product:{content_state.product}""" if content_state.product else ""}
-    Title: {content_state.title}
     Objective: 
     {content_state.objective if content_state.objective else """Create content that will drive positive engagement and conversion."""}
     Target Audience: 
     {content_state.audience if content_state.audience else "General Audience"}
-
-    Market Research:
-    - Trends: {content_state.market_research.get('trends', [])}
-    - Keywords: {content_state.market_research.get('keywords', [])}
-    - Demographic: {content_state.market_research.get('demographic', '')}
-    - Competition: {content_state.market_research.get('competition', '')}
     
     Content Details:
     - Text: {content_state.generated_text}
@@ -266,20 +279,13 @@ def evaluate_content(state: Dict[str, Any]):
         content_state.generated_recommendations = response.recommendations
     except ValidationError as e:
         print(f"Content Evaluation Validation Error: {e}")
-        content_state.generated_score = 7
-        content_state.generated_analysis = "Content shows promise but could benefit from further refinement."
-        content_state.generated_recommendations = [
-            "Enhance alignment with market trends",
-            "Optimize for target audience engagement",
-            "Incorporate more specific keywords"
-        ]
-
     return content_state
 
 def init_workflow(mode="full"):
     workflow = StateGraph(dict)
-    
+
     workflow.add_node("market_research", conduct_market_research)
+
     if mode=="full" or mode=="text_only":
         workflow.add_node("generate_content", generate_content)
     if mode=="full" or mode=="media_only":
