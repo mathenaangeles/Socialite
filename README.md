@@ -1,5 +1,7 @@
 # Socialite
 
+Socialite is an AI-powered digital marketing tool that was built using Azure and LangGraph.
+
 ### Prerequisites
 - [Python 3.9+](https://www.python.org/downloads/)
 - [Node.js 16+](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
